@@ -1,0 +1,2272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LiquidPulse — iOS 27 Paper Trading & Live News</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    /* ==========================================================================
+       iOS 27 LIQUID GLASS DESIGN SYSTEM & FLUID SPRING PHYSICS
+       ========================================================================== */
+    :root {
+      --spring-bounce: cubic-bezier(0.22, 1.35, 0.36, 1);
+      --spring-smooth: cubic-bezier(0.25, 1.05, 0.35, 1);
+      --glass-tint: 0.42;
+      --glass-blur: 28px;
+      --glass-sat: 185%;
+
+      /* Dark Liquid Glass Theme (Default) */
+      --bg-base: #070b14;
+      --text-primary: #f8fafc;
+      --text-secondary: rgba(226, 232, 240, 0.72);
+      --text-muted: rgba(148, 163, 184, 0.75);
+      --glass-rgb: 16, 23, 42;
+      --glass-card-rgb: 24, 34, 60;
+      --specular-top: rgba(255, 255, 255, 0.34);
+      --specular-ring: rgba(255, 255, 255, 0.14);
+      --specular-bottom: rgba(255, 255, 255, 0.06);
+      --input-bg: rgba(15, 23, 42, 0.55);
+      --pill-bg: rgba(255, 255, 255, 0.08);
+      --pill-active-bg: rgba(255, 255, 255, 0.22);
+      --shadow-glass: 0 22px 50px -12px rgba(0, 0, 0, 0.55);
+    }
+
+    body.light-glass {
+      --bg-base: #e7eef8;
+      --text-primary: #0f172a;
+      --text-secondary: rgba(30, 41, 59, 0.78);
+      --text-muted: rgba(71, 85, 105, 0.78);
+      --glass-rgb: 255, 255, 255;
+      --glass-card-rgb: 255, 255, 255;
+      --specular-top: rgba(255, 255, 255, 0.92);
+      --specular-ring: rgba(255, 255, 255, 0.65);
+      --specular-bottom: rgba(15, 23, 42, 0.08);
+      --input-bg: rgba(255, 255, 255, 0.58);
+      --pill-bg: rgba(15, 23, 42, 0.06);
+      --pill-active-bg: rgba(255, 255, 255, 0.88);
+      --shadow-glass: 0 20px 45px -12px rgba(15, 23, 42, 0.14);
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", sans-serif;
+      background-color: var(--bg-base);
+      color: var(--text-primary);
+      margin: 0;
+      min-height: 100vh;
+      overflow-x: hidden;
+      transition: background-color 0.45s var(--spring-smooth), color 0.35s ease;
+    }
+
+    /* Animated Ambient Mesh Orbs so Liquid Glass refracts rich color */
+    .ambient-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .orb {
+      position: absolute;
+      border-radius: 9999px;
+      filter: blur(85px);
+      opacity: 0.68;
+      animation: floatOrb 22s infinite alternate ease-in-out;
+      will-change: transform;
+    }
+
+    body.light-glass .orb {
+      opacity: 0.55;
+      filter: blur(95px);
+    }
+
+    .orb-1 {
+      width: 44vw;
+      height: 44vw;
+      min-width: 340px;
+      min-height: 340px;
+      top: -10%;
+      left: -8%;
+      background: radial-gradient(circle, #3b82f6 0%, #6366f1 55%, transparent 100%);
+    }
+
+    .orb-2 {
+      width: 40vw;
+      height: 40vw;
+      min-width: 320px;
+      min-height: 320px;
+      bottom: -12%;
+      right: -6%;
+      background: radial-gradient(circle, #10b981 0%, #06b6d4 55%, transparent 100%);
+      animation-delay: -7s;
+    }
+
+    .orb-3 {
+      width: 34vw;
+      height: 34vw;
+      min-width: 280px;
+      min-height: 280px;
+      top: 38%;
+      left: 38%;
+      background: radial-gradient(circle, #ec4899 0%, #8b5cf6 60%, transparent 100%);
+      animation-delay: -14s;
+    }
+
+    @keyframes floatOrb {
+      0% { transform: translate3d(0, 0, 0) scale(1); }
+      50% { transform: translate3d(4vw, -3vh, 0) scale(1.08); }
+      100% { transform: translate3d(-3vw, 4vh, 0) scale(0.95); }
+    }
+
+    /* Core iOS 27 Liquid Glass Surface */
+    .liquid-glass {
+      position: relative;
+      background: rgba(var(--glass-rgb), var(--glass-tint));
+      backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+      -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+      border-radius: 26px;
+      box-shadow:
+        inset 0 1px 0 0 var(--specular-top),
+        inset 0 -1px 0 0 var(--specular-bottom),
+        inset 0 0 0 1px var(--specular-ring),
+        var(--shadow-glass);
+      transition:
+        transform 0.42s var(--spring-bounce),
+        background-color 0.25s ease,
+        box-shadow 0.35s ease;
+    }
+
+    .liquid-glass-card {
+      position: relative;
+      background: rgba(var(--glass-card-rgb), calc(var(--glass-tint) * 0.85));
+      backdrop-filter: blur(calc(var(--glass-blur) * 0.85)) saturate(var(--glass-sat));
+      -webkit-backdrop-filter: blur(calc(var(--glass-blur) * 0.85)) saturate(var(--glass-sat));
+      border-radius: 20px;
+      box-shadow:
+        inset 0 1px 0 0 var(--specular-top),
+        inset 0 0 0 1px var(--specular-ring),
+        0 8px 24px -6px rgba(0, 0, 0, 0.22);
+      overflow: hidden;
+      transition:
+        transform 0.42s var(--spring-bounce),
+        box-shadow 0.35s var(--spring-smooth),
+        background-color 0.25s ease;
+    }
+
+    /* Pointer-Reactive Specular Highlight Shimmer */
+    .specular-interactive::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      pointer-events: none;
+      background: radial-gradient(
+        260px circle at var(--mx, 50%) var(--my, 50%),
+        rgba(255, 255, 255, 0.18),
+        transparent 70%
+      );
+      opacity: 0;
+      transition: opacity 0.28s ease;
+    }
+
+    .specular-interactive:hover::before {
+      opacity: 1;
+    }
+
+    /* Tactile iOS 27 Spring Press */
+    .spring-btn {
+      transition: transform 0.38s var(--spring-bounce), background-color 0.2s ease, box-shadow 0.25s ease;
+      cursor: pointer;
+    }
+
+    .spring-btn:hover {
+      transform: translateY(-1.5px) scale(1.015);
+    }
+
+    .spring-btn:active {
+      transform: scale(0.955);
+    }
+
+    /* iOS 27 Capsule Pills & Segmented Controls */
+    .glass-pill {
+      background: var(--pill-bg);
+      box-shadow: inset 0 1px 0 0 var(--specular-top), inset 0 0 0 1px var(--specular-ring);
+      border-radius: 9999px;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+
+    .glass-pill-active {
+      background: var(--pill-active-bg);
+      box-shadow:
+        inset 0 1px 0 0 var(--specular-top),
+        inset 0 0 0 1px var(--specular-ring),
+        0 4px 14px rgba(0, 0, 0, 0.16);
+    }
+
+    .glass-input {
+      background: var(--input-bg);
+      color: var(--text-primary);
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.18), inset 0 0 0 1px var(--specular-ring);
+      border-radius: 14px;
+      outline: none;
+      transition: box-shadow 0.25s ease, transform 0.3s var(--spring-bounce);
+    }
+
+    .glass-input:focus {
+      box-shadow:
+        inset 0 0 0 1.5px rgba(59, 130, 246, 0.85),
+        0 0 0 4px rgba(59, 130, 246, 0.18);
+    }
+
+    /* Dynamic Island OTP & Toast Notification */
+    .dynamic-island {
+      position: fixed;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-140%) scale(0.84);
+      z-index: 100;
+      background: rgba(10, 14, 24, 0.88);
+      color: #f8fafc;
+      backdrop-filter: blur(32px) saturate(200%);
+      -webkit-backdrop-filter: blur(32px) saturate(200%);
+      border-radius: 9999px;
+      box-shadow:
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.38),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.16),
+        0 20px 45px rgba(0, 0, 0, 0.55);
+      opacity: 0;
+      pointer-events: none;
+      transition:
+        transform 0.58s var(--spring-bounce),
+        opacity 0.32s ease;
+    }
+
+    .dynamic-island.active {
+      transform: translateX(-50%) translateY(0) scale(1);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* Floating Glass Sheet Modal */
+    .sheet-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      background: rgba(4, 7, 15, 0.48);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .sheet-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .glass-sheet {
+      width: 100%;
+      max-width: 440px;
+      transform: translateY(36px) scale(0.92);
+      opacity: 0;
+      transition: transform 0.52s var(--spring-bounce), opacity 0.3s ease;
+    }
+
+    .sheet-backdrop.open .glass-sheet {
+      transform: translateY(0) scale(1);
+      opacity: 1;
+    }
+
+    /* Live Price Tick Flash Pulses */
+    @keyframes flashUp {
+      0% { background-color: rgba(16, 185, 129, 0.34); }
+      100% { background-color: transparent; }
+    }
+    @keyframes flashDown {
+      0% { background-color: rgba(244, 63, 94, 0.34); }
+      100% { background-color: transparent; }
+    }
+    .tick-up { animation: flashUp 0.75s ease-out; border-radius: 10px; }
+    .tick-down { animation: flashDown 0.75s ease-out; border-radius: 10px; }
+
+    /* Smooth Spring Accordion for News Card Expansion */
+    .news-expand-grid {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 0.48s var(--spring-bounce), opacity 0.32s ease;
+      opacity: 0;
+    }
+    .news-card.expanded .news-expand-grid {
+      grid-template-rows: 1fr;
+      opacity: 1;
+    }
+    .news-expand-inner {
+      overflow: hidden;
+    }
+
+    /* Live Follow-Up Spring Insertion */
+    @keyframes followUpDrop {
+      0% {
+        opacity: 0;
+        transform: translateY(-14px) scale(0.95);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+    .followup-item-new {
+      animation: followUpDrop 0.52s var(--spring-bounce) forwards;
+    }
+
+    /* Custom Range Slider (iOS 27 Glass Opacity Control) */
+    input[type="range"].ios-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 6px;
+      border-radius: 999px;
+      background: var(--pill-bg);
+      box-shadow: inset 0 0 0 1px var(--specular-ring);
+      outline: none;
+    }
+    input[type="range"].ios-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #ffffff;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35), inset 0 0 0 1px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      transition: transform 0.25s var(--spring-bounce);
+    }
+    input[type="range"].ios-slider::-webkit-slider-thumb:hover {
+      transform: scale(1.18);
+    }
+
+    /* Subtle Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.28);
+      border-radius: 9999px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Dynamic Animated Ambient Background -->
+  <div class="ambient-canvas" aria-hidden="true">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <!-- iOS 27 Dynamic Island Live OTP & Trade Banner -->
+  <div id="dynamicIsland" class="dynamic-island px-5 py-3 flex items-center gap-3.5 max-w-[92vw]">
+    <div id="islandIcon" class="w-8 h-8 rounded-full bg-blue-500/25 flex items-center justify-center text-blue-400 shrink-0">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+      </svg>
+    </div>
+    <div class="min-w-0">
+      <div id="islandTitle" class="text-[11px] font-semibold uppercase tracking-wider text-blue-300">Verification Code</div>
+      <div id="islandBody" class="text-sm font-bold text-white truncate">Your code is 482910</div>
+    </div>
+    <button id="islandCopyBtn" onclick="copyCurrentOtp()" class="hidden spring-btn px-3 py-1 rounded-full bg-white/15 hover:bg-white/25 text-xs font-semibold text-white shrink-0">
+      Auto-Fill
+    </button>
+  </div>
+
+  <!-- Main App Shell -->
+  <div class="max-w-[1540px] mx-auto px-3 sm:px-5 py-3 sm:py-4 flex flex-col gap-4">
+
+    <!-- Top Navigation Bar (iOS 27 Floating Liquid Glass Header) -->
+    <header class="liquid-glass specular-interactive px-4 py-3 flex flex-wrap items-center justify-between gap-3 z-20">
+      <!-- Brand + Market Status -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500 via-indigo-500 to-emerald-400 flex items-center justify-center shadow-lg text-white font-extrabold text-lg">
+          LP
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-extrabold text-base sm:text-lg tracking-tight">LiquidPulse</span>
+            <span class="glass-pill px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+              Live Market
+            </span>
+          </div>
+          <p class="text-[11px] hidden sm:block" style="color: var(--text-muted)">iOS 27 Liquid Glass Paper Terminal</p>
+        </div>
+      </div>
+
+      <!-- Global Stock Search Input -->
+      <div class="relative flex-1 min-w-[200px] max-w-md order-3 lg:order-2 w-full lg:w-auto">
+        <div class="relative flex items-center">
+          <svg class="w-4 h-4 absolute left-3.5 pointer-events-none" style="color: var(--text-muted)" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z" />
+          </svg>
+          <input
+            id="tickerSearchInput"
+            type="text"
+            placeholder="Search ticker or company (NVDA, AAPL, TSLA...)"
+            class="glass-input w-full pl-10 pr-4 py-2 text-xs sm:text-sm font-medium"
+            autocomplete="off"
+          />
+        </div>
+        <!-- Search Dropdown -->
+        <div id="searchDropdown" class="hidden absolute left-0 right-0 mt-2 liquid-glass p-2 z-50 max-h-64 overflow-y-auto"></div>
+      </div>
+
+      <!-- Right Controls: Liquid Glass Tint Slider, Light/Dark Toggle, Credits & Auth -->
+      <div class="flex items-center gap-2 sm:gap-3 order-2 lg:order-3">
+        <!-- iOS 27 Liquid Glass Opacity / Tint Slider -->
+        <div class="hidden xl:flex items-center gap-2.5 glass-pill px-3.5 py-1.5" title="Adjust iOS 27 Liquid Glass Translucency">
+          <svg class="w-3.5 h-3.5 text-sky-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707" />
+          </svg>
+          <span class="text-[11px] font-semibold" style="color: var(--text-secondary)">Glass</span>
+          <input id="glassOpacitySlider" type="range" min="15" max="82" value="42" class="ios-slider w-20" />
+        </div>
+
+        <!-- Light / Dark Glass Mode Toggle -->
+        <button id="themeToggleBtn" onclick="toggleGlassTheme()" class="spring-btn glass-pill p-2.5 flex items-center justify-center" title="Toggle Light / Dark Liquid Glass">
+          <svg id="themeIcon" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+          </svg>
+        </button>
+
+        <!-- Credits & Portfolio Pill -->
+        <div class="glass-pill px-3.5 py-1.5 flex items-center gap-3">
+          <div>
+            <div class="text-[10px] font-semibold uppercase tracking-wider" style="color: var(--text-muted)">Credits</div>
+            <div id="headerCredits" class="text-xs sm:text-sm font-extrabold text-emerald-400 tabular-nums">10,000.00</div>
+          </div>
+          <div class="h-6 w-[1px] bg-white/15"></div>
+          <div class="hidden sm:block">
+            <div class="text-[10px] font-semibold uppercase tracking-wider" style="color: var(--text-muted)">Net Worth</div>
+            <div id="headerNetWorth" class="text-xs sm:text-sm font-extrabold tabular-nums">10,000.00</div>
+          </div>
+        </div>
+
+        <!-- Account / Sign-In Trigger -->
+        <button id="accountBtn" onclick="openAuthSheet()" class="spring-btn glass-pill glass-pill-active px-3.5 py-2 flex items-center gap-2 text-xs sm:text-sm font-bold">
+          <span id="accountAvatar" class="w-6 h-6 rounded-full bg-gradient-to-tr from-sky-400 to-indigo-500 text-white text-[11px] font-extrabold flex items-center justify-center">G</span>
+          <span id="accountLabel" class="max-w-[110px] truncate">Sign In</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Mobile / Tablet Glass Opacity Bar (Visible below XL) -->
+    <div class="xl:hidden liquid-glass px-4 py-2 flex items-center justify-between gap-3">
+      <span class="text-xs font-semibold" style="color: var(--text-secondary)">iOS 27 Liquid Glass Frost</span>
+      <div class="flex items-center gap-2.5">
+        <span class="text-[11px]" style="color: var(--text-muted)">Clear</span>
+        <input id="glassOpacitySliderMobile" type="range" min="15" max="82" value="42" class="ios-slider w-28 sm:w-36" />
+        <span class="text-[11px]" style="color: var(--text-muted)">Frosted</span>
+      </div>
+    </div>
+
+    <!-- ======================================================================
+         SPLIT-SCREEN WORKSPACE: LEFT (MARKET & TRADING) | RIGHT (LIVE NEWS)
+         ====================================================================== -->
+    <main class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+
+      <!-- LEFT PANE (7 Columns on LG): Stock Market, Chart, Order Ticket & Portfolio -->
+      <section class="lg:col-span-7 flex flex-col gap-4">
+
+        <!-- Quick Ticker Pill Strip -->
+        <div id="tickerStrip" class="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar"></div>
+
+        <!-- Main Stock Chart & Execution Card -->
+        <div class="liquid-glass specular-interactive p-4 sm:p-5 flex flex-col gap-4">
+          <!-- Selected Stock Header -->
+          <div class="flex flex-wrap items-start justify-between gap-3">
+            <div class="flex items-center gap-3">
+              <div id="stockLogoBadge" class="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-extrabold text-base shadow-md">
+                NVDA
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <h1 id="stockName" class="text-lg sm:text-xl font-extrabold tracking-tight">NVIDIA Corporation</h1>
+                  <span id="stockSymbolBadge" class="glass-pill px-2.5 py-0.5 text-xs font-bold">NVDA</span>
+                  <button id="watchlistStarBtn" onclick="toggleWatchlist()" class="spring-btn glass-pill p-1.5" title="Toggle Watchlist">
+                    <svg id="watchlistStarIcon" class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                    </svg>
+                  </button>
+                </div>
+                <p id="stockSector" class="text-xs font-medium" style="color: var(--text-muted)">NASDAQ • Semiconductors & AI Infrastructure</p>
+              </div>
+            </div>
+
+            <!-- Live Price & Delta -->
+            <div id="livePriceBox" class="text-right px-2.5 py-1 transition-colors">
+              <div id="stockLivePrice" class="text-2xl sm:text-3xl font-extrabold tabular-nums tracking-tight">$138.45</div>
+              <div id="stockPriceChange" class="text-xs sm:text-sm font-bold text-emerald-400 tabular-nums">+4.82 (+3.61%) Today</div>
+            </div>
+          </div>
+
+          <!-- Interactive Price Chart Container -->
+          <div class="liquid-glass-card p-3 sm:p-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <div class="flex items-center gap-1.5 glass-pill p-1" id="timeframePills">
+                <button onclick="setTimeframe('1D')" data-tf="1D" class="tf-btn spring-btn px-3 py-1 rounded-full text-xs font-bold glass-pill-active">1D</button>
+                <button onclick="setTimeframe('1W')" data-tf="1W" class="tf-btn spring-btn px-3 py-1 rounded-full text-xs font-bold">1W</button>
+                <button onclick="setTimeframe('1M')" data-tf="1M" class="tf-btn spring-btn px-3 py-1 rounded-full text-xs font-bold">1M</button>
+                <button onclick="setTimeframe('1Y')" data-tf="1Y" class="tf-btn spring-btn px-3 py-1 rounded-full text-xs font-bold">1Y</button>
+              </div>
+              <div id="chartHoverReadout" class="text-xs font-semibold tabular-nums" style="color: var(--text-secondary)">
+                Hover chart to inspect price
+              </div>
+            </div>
+
+            <div class="relative w-full h-56 sm:h-64">
+              <canvas id="stockChartCanvas" class="w-full h-full block cursor-crosshair"></canvas>
+            </div>
+          </div>
+
+          <!-- Key Market Stats Row -->
+          <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5" id="marketStatsGrid">
+            <div class="liquid-glass-card px-3 py-2.5">
+              <div class="text-[10px] font-semibold uppercase" style="color: var(--text-muted)">Open</div>
+              <div id="statOpen" class="text-xs sm:text-sm font-bold tabular-nums mt-0.5">$134.10</div>
+            </div>
+            <div class="liquid-glass-card px-3 py-2.5">
+              <div class="text-[10px] font-semibold uppercase" style="color: var(--text-muted)">Day High</div>
+              <div id="statHigh" class="text-xs sm:text-sm font-bold tabular-nums mt-0.5">$139.20</div>
+            </div>
+            <div class="liquid-glass-card px-3 py-2.5">
+              <div class="text-[10px] font-semibold uppercase" style="color: var(--text-muted)">Day Low</div>
+              <div id="statLow" class="text-xs sm:text-sm font-bold tabular-nums mt-0.5">$133.50</div>
+            </div>
+            <div class="liquid-glass-card px-3 py-2.5">
+              <div class="text-[10px] font-semibold uppercase" style="color: var(--text-muted)">Volume</div>
+              <div id="statVol" class="text-xs sm:text-sm font-bold tabular-nums mt-0.5">64.2M</div>
+            </div>
+            <div class="liquid-glass-card px-3 py-2.5 col-span-2 sm:col-span-1">
+              <div class="text-[10px] font-semibold uppercase" style="color: var(--text-muted)">Mkt Cap</div>
+              <div id="statCap" class="text-xs sm:text-sm font-bold tabular-nums mt-0.5">3.39T</div>
+            </div>
+          </div>
+
+          <!-- Paper Trading Order Ticket -->
+          <div class="liquid-glass-card p-4 flex flex-col gap-3.5">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <!-- Buy / Sell Segmented Control -->
+              <div class="glass-pill p-1 flex items-center gap-1">
+                <button id="sideBuyBtn" onclick="setOrderSide('BUY')" class="spring-btn px-4 py-1.5 rounded-full text-xs font-extrabold bg-emerald-500 text-white shadow">
+                  Buy
+                </button>
+                <button id="sideSellBtn" onclick="setOrderSide('SELL')" class="spring-btn px-4 py-1.5 rounded-full text-xs font-extrabold" style="color: var(--text-secondary)">
+                  Sell
+                </button>
+              </div>
+
+              <!-- Market / Limit Segmented Control -->
+              <div class="glass-pill p-1 flex items-center gap-1">
+                <button id="typeMarketBtn" onclick="setOrderType('MARKET')" class="spring-btn px-3.5 py-1.5 rounded-full text-xs font-bold glass-pill-active">
+                  Market Order
+                </button>
+                <button id="typeLimitBtn" onclick="setOrderType('LIMIT')" class="spring-btn px-3.5 py-1.5 rounded-full text-xs font-bold" style="color: var(--text-secondary)">
+                  Limit Order
+                </button>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+              <!-- Quantity / Shares -->
+              <div>
+                <div class="flex justify-between text-[11px] font-semibold mb-1" style="color: var(--text-secondary)">
+                  <span>Shares</span>
+                  <button onclick="setMaxShares()" class="text-blue-400 hover:underline font-bold">Max</button>
+                </div>
+                <input id="orderSharesInput" type="number" min="0.01" step="1" value="5" oninput="updateOrderPreview()" class="glass-input w-full px-3.5 py-2 text-sm font-bold tabular-nums" />
+              </div>
+
+              <!-- Limit Price (Conditional) or Execution Price -->
+              <div>
+                <label id="priceInputLabel" class="block text-[11px] font-semibold mb-1" style="color: var(--text-secondary)">Market Price (Credits)</label>
+                <input id="orderLimitInput" type="number" step="0.01" disabled oninput="updateOrderPreview()" class="glass-input w-full px-3.5 py-2 text-sm font-bold tabular-nums opacity-75" />
+              </div>
+
+              <!-- Estimated Total + Submit Button -->
+              <div class="flex flex-col gap-1.5">
+                <div class="flex justify-between text-[11px] font-semibold" style="color: var(--text-secondary)">
+                  <span>Est. Total</span>
+                  <span id="orderTotalCredits" class="font-extrabold tabular-nums">692.25 CR</span>
+                </div>
+                <button id="submitOrderBtn" onclick="executeOrder()" class="spring-btn w-full py-2.5 px-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-extrabold text-xs sm:text-sm shadow-lg">
+                  Buy NVDA
+                </button>
+              </div>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-between text-[11px] pt-1 border-t border-white/10" style="color: var(--text-muted)">
+              <span id="availablePowerText">Available Buying Power: 10,000.00 Credits</span>
+              <span id="ownedSharesText">Currently Owned: 0.0000 shares</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Portfolio / Open Orders / History / Watchlist Tabs -->
+        <div class="liquid-glass specular-interactive p-4 sm:p-5 flex flex-col gap-3.5">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="glass-pill p-1 flex items-center gap-1 overflow-x-auto">
+              <button onclick="setPortfolioTab('positions')" data-ptab="positions" class="ptab-btn spring-btn px-3.5 py-1.5 rounded-full text-xs font-bold glass-pill-active">
+                Positions (<span id="posCountBadge">0</span>)
+              </button>
+              <button onclick="setPortfolioTab('orders')" data-ptab="orders" class="ptab-btn spring-btn px-3.5 py-1.5 rounded-full text-xs font-bold">
+                Open Limits (<span id="openOrderBadge">0</span>)
+              </button>
+              <button onclick="setPortfolioTab('history')" data-ptab="history" class="ptab-btn spring-btn px-3.5 py-1.5 rounded-full text-xs font-bold">
+                Trade History
+              </button>
+              <button onclick="setPortfolioTab('watchlist')" data-ptab="watchlist" class="ptab-btn spring-btn px-3.5 py-1.5 rounded-full text-xs font-bold">
+                Watchlist
+              </button>
+            </div>
+
+            <button onclick="resetAccountCredits()" class="spring-btn glass-pill px-3 py-1.5 text-[11px] font-semibold text-rose-400 hover:bg-rose-500/15">
+              Reset 10,000 CR
+            </button>
+          </div>
+
+          <div id="portfolioTabContent" class="min-h-[140px]"></div>
+        </div>
+      </section>
+
+      <!-- RIGHT PANE (5 Columns on LG): Live Contextual News & Auto-Streaming Follow-Ups -->
+      <aside class="lg:col-span-5 liquid-glass specular-interactive p-4 sm:p-5 flex flex-col gap-4 lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)]">
+        <!-- News Feed Header -->
+        <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-white/10">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse"></span>
+              <h2 id="newsPaneTitle" class="text-base sm:text-lg font-extrabold tracking-tight">NVDA Live Wire</h2>
+            </div>
+            <p id="newsPaneSubtitle" class="text-xs" style="color: var(--text-muted)">
+              Real-time coverage & Jensen Huang executive updates
+            </p>
+          </div>
+
+          <button onclick="triggerManualFollowUp()" class="spring-btn glass-pill px-3 py-1.5 text-xs font-bold text-sky-400 flex items-center gap-1.5">
+            <span>+ Simulate Follow-Up</span>
+          </button>
+        </div>
+
+        <!-- Instruction Hint Pill -->
+        <div class="glass-pill px-3.5 py-2 text-[11px] font-medium flex items-center justify-between gap-2" style="color: var(--text-secondary)">
+          <span>Tap any headline to expand summary, source link & live follow-up thread</span>
+          <span class="text-emerald-400 font-bold shrink-0">AUTO-STREAMING</span>
+        </div>
+
+        <!-- Scrollable Live News Container -->
+        <div id="newsFeedContainer" class="flex flex-col gap-3 overflow-y-auto pr-1 flex-1"></div>
+      </aside>
+    </main>
+  </div>
+
+  <!-- ========================================================================
+       iOS 27 FLOATING GLASS SHEET: MULTI-PROVIDER AUTHENTICATION MODAL
+       ======================================================================== -->
+  <div id="authSheetBackdrop" class="sheet-backdrop" onclick="handleBackdropClick(event)">
+    <div class="glass-sheet liquid-glass p-5 sm:p-6 flex flex-col gap-4" onclick="event.stopPropagation()">
+      <!-- iOS Sheet Grabber Handle -->
+      <div class="w-10 h-1.5 rounded-full bg-white/30 mx-auto -mt-1"></div>
+
+      <div class="flex items-start justify-between">
+        <div>
+          <h3 class="text-xl font-extrabold tracking-tight">LiquidPulse Account</h3>
+          <p class="text-xs mt-0.5" style="color: var(--text-secondary)">
+            New accounts start with <span class="text-emerald-400 font-bold">10,000.00 Credits</span> saved locally.
+          </p>
+        </div>
+        <button onclick="closeAuthSheet()" class="spring-btn glass-pill p-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Active Account Switcher (If already signed in or saved accounts exist) -->
+      <div id="savedAccountsBox" class="hidden flex-col gap-2">
+        <div class="text-[11px] font-bold uppercase tracking-wider" style="color: var(--text-muted)">Saved Local Profiles</div>
+        <div id="savedAccountsList" class="flex flex-col gap-1.5 max-h-32 overflow-y-auto"></div>
+      </div>
+
+      <!-- Unified Phone / Email Input + Verification Step -->
+      <div class="liquid-glass-card p-4 flex flex-col gap-3">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold">Phone / Email Sign In</span>
+          <span id="detectedInputBadge" class="glass-pill px-2.5 py-0.5 text-[10px] font-bold text-blue-400">Auto-Detect</span>
+        </div>
+
+        <div id="authStep1" class="flex flex-col gap-2.5">
+          <input
+            id="phoneEmailInput"
+            type="text"
+            placeholder="Enter phone (+1 416...) or email (you@domain.com)"
+            oninput="detectContactType()"
+            class="glass-input w-full px-3.5 py-2.5 text-sm font-medium"
+          />
+          <button onclick="sendVerificationCode()" class="spring-btn w-full py-2.5 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-bold text-sm shadow-lg">
+            Send Verification Code
+          </button>
+        </div>
+
+        <div id="authStep2" class="hidden flex-col gap-2.5">
+          <div class="text-xs" style="color: var(--text-secondary)">
+            Enter the 6-digit code sent to <span id="otpTargetDisplay" class="font-bold text-blue-400"></span>
+          </div>
+          <div class="flex gap-2">
+            <input
+              id="otpCodeInput"
+              type="text"
+              maxlength="6"
+              placeholder="6-digit code"
+              class="glass-input flex-1 px-3.5 py-2.5 text-center text-base font-extrabold tracking-[0.25em] tabular-nums"
+            />
+            <button onclick="verifyOtpAndLogin()" class="spring-btn px-5 py-2.5 rounded-2xl bg-emerald-500 text-white font-bold text-sm shadow-lg">
+              Verify
+            </button>
+          </div>
+          <div class="flex justify-between text-[11px]">
+            <button onclick="resetAuthStep()" class="text-blue-400 hover:underline font-semibold">Change phone/email</button>
+            <button onclick="sendVerificationCode()" class="text-sky-400 hover:underline font-semibold">Resend code</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Divider -->
+      <div class="flex items-center gap-3">
+        <div class="h-[1px] flex-1 bg-white/15"></div>
+        <span class="text-[11px] font-semibold uppercase" style="color: var(--text-muted)">Or continue with</span>
+        <div class="h-[1px] flex-1 bg-white/15"></div>
+      </div>
+
+      <!-- OAuth One-Click Providers: Google, GitHub, Facebook -->
+      <div class="grid grid-cols-3 gap-2.5">
+        <button onclick="loginWithOAuth('Google')" class="spring-btn liquid-glass-card py-2.5 px-3 flex items-center justify-center gap-2 text-xs font-bold">
+          <svg class="w-4 h-4" viewBox="0 0 24 24">
+            <path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.4 1 3.5 3.6 1.6 7.4l3.7 2.8C6.2 7.2 8.9 5 12 5z"/>
+            <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.7-.2-2.5H12v4.8h6.5c-.3 1.5-1.1 2.8-2.4 3.6l3.7 2.9c2.2-2 3.7-5 3.7-8.8z"/>
+            <path fill="#FBBC05" d="M5.3 14.8c-.2-.8-.4-1.6-.4-2.5s.2-1.7.4-2.5L1.6 7C.6 9 0 11.2 0 13.5s.6 4.5 1.6 6.5l3.7-2.8z"/>
+            <path fill="#34A853" d="M12 24c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3.1 0-5.8-2.1-6.7-5l-3.7 2.8C3.5 21.1 7.4 24 12 24z"/>
+          </svg>
+          <span>Google</span>
+        </button>
+
+        <button onclick="loginWithOAuth('GitHub')" class="spring-btn liquid-glass-card py-2.5 px-3 flex items-center justify-center gap-2 text-xs font-bold">
+          <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
+            <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56v-2.16c-3.2.7-3.87-1.36-3.87-1.36-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.76 2.7 1.25 3.36.96.1-.75.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.68 0-1.25.45-2.28 1.18-3.08-.12-.29-.51-1.46.11-3.04 0 0 .97-.31 3.17 1.18a11.03 11.03 0 015.78 0c2.2-1.49 3.16-1.18 3.16-1.18.63 1.58.24 2.75.12 3.04.74.8 1.18 1.83 1.18 3.08 0 4.41-2.69 5.39-5.25 5.67.41.36.78 1.06.78 2.14v3.17c0 .31.21.68.8.56A11.51 11.51 0 0023.5 12C23.5 5.65 18.35.5 12 .5z"/>
+          </svg>
+          <span>GitHub</span>
+        </button>
+
+        <button onclick="loginWithOAuth('Facebook')" class="spring-btn liquid-glass-card py-2.5 px-3 flex items-center justify-center gap-2 text-xs font-bold">
+          <svg class="w-4 h-4 fill-[#1877F2]" viewBox="0 0 24 24">
+            <path d="M24 12.07C24 5.41 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.04V9.41c0-3.02 1.8-4.7 4.54-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.5c-1.5 0-1.96.93-1.96 1.89v2.26h3.32l-.53 3.5h-2.8V24C19.62 23.1 24 18.1 24 12.07z"/>
+          </svg>
+          <span>Facebook</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       APPLICATION LOGIC, PERSISTENT STORAGE ENGINE & LIVE MARKET / NEWS STREAM
+       ======================================================================== -->
+  <script>
+    /* ------------------------------------------------------------------------
+       1. STOCK UNIVERSE & CONTEXTUAL NEWS DATABASE (WITH JENSEN HUANG / EXECS)
+       ------------------------------------------------------------------------ */
+    const STOCKS = {
+      NVDA: {
+        symbol: "NVDA",
+        name: "NVIDIA Corporation",
+        sector: "NASDAQ • Semiconductors & AI Infrastructure",
+        color: "from-emerald-500 to-teal-600",
+        price: 138.45,
+        prevClose: 133.63,
+        open: 134.10,
+        high: 139.20,
+        low: 133.50,
+        volume: "64.2M",
+        mktCap: "3.39T",
+        subtitle: "Real-time coverage & Jensen Huang executive updates",
+        news: [
+          {
+            id: "nvda-1",
+            headline: "Jensen Huang unveils next-gen Rubin AI rack roadmap at Taipei keynote",
+            outlet: "Bloomberg",
+            reporter: "Ian King",
+            time: "4m ago",
+            url: "https://www.bloomberg.com/technology",
+            summary: "NVIDIA CEO Jensen Huang outlined accelerated annual release cycles for Rubin GPUs and NVLink interconnects, emphasizing sovereign AI factory demand across North America and Asia.",
+            followUps: [
+              { time: "2m ago", text: "Jensen Huang confirms hyperscaler cloud allocations for Q1 are already fully committed during post-keynote Q&A." },
+              { time: "Just now", text: "Supply chain partners TSMC and SK Hynix climb in sympathy following Huang's HBM4 packaging remarks." }
+            ],
+            livePool: [
+              "Jensen Huang tells analysts inference compute demand is scaling 10x faster than initial Blackwell projections.",
+              "Bank of America reiterates Top Pick on NVDA following Huang's sovereign AI infrastructure briefing.",
+              "NVIDIA demonstrates real-time digital twin robotics simulation powered by Omniverse and NIM microservices."
+            ]
+          },
+          {
+            id: "nvda-2",
+            headline: "Hyperscalers boost 2027 AI capex budgets as Blackwell Ultra shipments ramp",
+            outlet: "Reuters",
+            reporter: "Stephen Nellis",
+            time: "28m ago",
+            url: "https://www.reuters.com/technology/",
+            summary: "Major cloud providers signaled higher data-center capital expenditures this quarter, pointing directly to liquid-cooled NVIDIA server clusters.",
+            followUps: [
+              { time: "14m ago", text: "Data center power and thermal management suppliers rally alongside NVIDIA's GB200 NVL72 rack deployment update." }
+            ],
+            livePool: [
+              "Institutional block volume spikes on NASDAQ as NVDA tests intraday resistance near $140.",
+              "Enterprise software partners report 3.4x throughput gains migrating inference workloads to TensorRT-LLM."
+            ]
+          },
+          {
+            id: "nvda-3",
+            headline: "NVIDIA expands CUDA-X quantum & drug discovery partnerships in Europe",
+            outlet: "Financial Times",
+            reporter: "Tim Bradshaw",
+            time: "1h ago",
+            url: "https://www.ft.com/technology",
+            summary: "European supercomputing centers are adopting NVIDIA hybrid quantum-classical simulation libraries to accelerate molecular modeling and climate forecasting.",
+            followUps: [],
+            livePool: [
+              "Munich supercomputing consortium announces 4,000-GPU expansion cluster powered by NVIDIA Grace Hopper."
+            ]
+          }
+        ]
+      },
+      AAPL: {
+        symbol: "AAPL",
+        name: "Apple Inc.",
+        sector: "NASDAQ • Consumer Ecosystems & Silicon",
+        color: "from-slate-600 to-zinc-800",
+        price: 229.80,
+        prevClose: 226.90,
+        open: 227.30,
+        high: 230.45,
+        low: 226.50,
+        volume: "41.8M",
+        mktCap: "3.48T",
+        subtitle: "Tim Cook strategy, Apple Intelligence & custom silicon news",
+        news: [
+          {
+            id: "aapl-1",
+            headline: "Tim Cook highlights record Services active subscriptions & on-device AI adoption",
+            outlet: "CNBC",
+            reporter: "Kif Leswing",
+            time: "9m ago",
+            url: "https://www.cnbc.com/technology/",
+            summary: "CEO Tim Cook noted that paid subscriptions across Apple's ecosystem surpassed 1.1 billion, fueled by upgraded iPhone replacement cycles and Private Cloud Compute features.",
+            followUps: [
+              { time: "3m ago", text: "App Store developer payouts hit a new quarterly high in North America and Japan, per CFO commentary." }
+            ],
+            livePool: [
+              "Wedbush raises AAPL price target citing multi-year AI upgrade cycle across installed base.",
+              "Apple Silicon M-series roadmap leaks point to tighter neural engine integration across Mac and iPad."
+            ]
+          },
+          {
+            id: "aapl-2",
+            headline: "Apple expands India and Vietnam manufacturing footprint for flagship Pro models",
+            outlet: "WSJ",
+            reporter: "Tilley Aaron",
+            time: "42m ago",
+            url: "https://www.wsj.com/tech",
+            summary: "Supply chain diversification continues ahead of schedule, reducing single-region assembly concentration while maintaining gross margin targets.",
+            followUps: [],
+            livePool: [
+              "Foxconn and Tata Electronics add new automated assembly lines ahead of holiday quarter demand."
+            ]
+          }
+        ]
+      },
+      TSLA: {
+        symbol: "TSLA",
+        name: "Tesla, Inc.",
+        sector: "NASDAQ • Autonomous Mobility & Energy Storage",
+        color: "from-rose-500 to-red-700",
+        price: 254.60,
+        prevClose: 247.10,
+        open: 248.00,
+        high: 256.80,
+        low: 246.40,
+        volume: "88.5M",
+        mktCap: "812B",
+        subtitle: "Elon Musk FSD updates, Cybercab & Megapack deployments",
+        news: [
+          {
+            id: "tsla-1",
+            headline: "Elon Musk details unsupervised FSD rollout timeline & Austin Cybercab fleet test",
+            outlet: "Bloomberg",
+            reporter: "Dana Hull",
+            time: "6m ago",
+            url: "https://www.bloomberg.com",
+            summary: "Elon Musk shared new neural-net intervention metrics showing a 5x improvement in miles between disengagements ahead of paid ride-hail pilot expansion.",
+            followUps: [
+              { time: "1m ago", text: "Cortex AI training cluster at Giga Texas reaches 50,000 H100-equivalent GPUs online." }
+            ],
+            livePool: [
+              "Elon Musk posts telemetry update confirming Cybercab inductive charging efficiency above 93%.",
+              "Morgan Stanley highlights Tesla Energy Megapack margins as key earnings stabilizer."
+            ]
+          },
+          {
+            id: "tsla-2",
+            headline: "Lathrop & Shanghai Megafactories hit record quarterly GWh grid storage output",
+            outlet: "Reuters",
+            reporter: "Hyunjoo Jin",
+            time: "51m ago",
+            url: "https://www.reuters.com",
+            summary: "Utility-scale battery storage deployments surged 110% year-over-year as AI data centers contract dedicated grid-smoothing Megapack installations.",
+            followUps: [],
+            livePool: [
+              "California grid operator reports peak evening load offset by 4.2 GW from Tesla Megapack sites."
+            ]
+          }
+        ]
+      },
+      MSFT: {
+        symbol: "MSFT",
+        name: "Microsoft Corporation",
+        sector: "NASDAQ • Enterprise Cloud & Copilot AI",
+        color: "from-sky-500 to-blue-700",
+        price: 428.90,
+        prevClose: 424.50,
+        open: 425.10,
+        high: 430.15,
+        low: 423.80,
+        volume: "22.4M",
+        mktCap: "3.19T",
+        subtitle: "Satya Nadella Azure cloud growth & autonomous Copilot agents",
+        news: [
+          {
+            id: "msft-1",
+            headline: "Satya Nadella introduces autonomous Copilot Studio agents for Fortune 500 workflows",
+            outlet: "WSJ",
+            reporter: "Tom Dotan",
+            time: "12m ago",
+            url: "https://www.wsj.com",
+            summary: "CEO Satya Nadella emphasized that Azure AI revenue growth accelerated as enterprise customers move from chat assistants to multi-step autonomous workflow agents.",
+            followUps: [
+              { time: "5m ago", text: "Over 70% of Fortune 500 enterprises now actively deploy Microsoft 365 Copilot seats." }
+            ],
+            livePool: [
+              "Azure custom Maia AI accelerator deployment expands across US East and West data centers.",
+              "Jefferies notes strong commercial bookings momentum heading into fiscal Q2."
+            ]
+          }
+        ]
+      },
+      AMZN: {
+        symbol: "AMZN",
+        name: "Amazon.com, Inc.",
+        sector: "NASDAQ • Cloud Infrastructure & Global Logistics",
+        color: "from-amber-500 to-orange-600",
+        price: 196.30,
+        prevClose: 193.80,
+        open: 194.20,
+        high: 197.10,
+        low: 193.40,
+        volume: "39.1M",
+        mktCap: "2.06T",
+        subtitle: "Andy Jassy AWS Trainium chips & robotics fulfillment centers",
+        news: [
+          {
+            id: "amzn-1",
+            headline: "Andy Jassy says AWS custom Trainium2 silicon delivers 40% better price-performance",
+            outlet: "CNBC",
+            reporter: "Annie Palmer",
+            time: "15m ago",
+            url: "https://www.cnbc.com",
+            summary: "Amazon CEO Andy Jassy highlighted surging demand for AWS Bedrock and custom silicon instances alongside same-day robotic fulfillment speed records.",
+            followUps: [
+              { time: "4m ago", text: "Amazon Robotics deploys new Proteus autonomous warehouse units across 12 North American hubs." }
+            ],
+            livePool: [
+              "Prime Video ad-supported tier surpasses 200M monthly global viewers, boosting high-margin ad revenue."
+            ]
+          }
+        ]
+      },
+      META: {
+        symbol: "META",
+        name: "Meta Platforms, Inc.",
+        sector: "NASDAQ • Social AI & Spatial Computing",
+        color: "from-blue-500 to-indigo-600",
+        price: 584.20,
+        prevClose: 576.40,
+        open: 578.00,
+        high: 586.90,
+        low: 575.90,
+        volume: "16.7M",
+        mktCap: "1.48T",
+        subtitle: "Mark Zuckerberg Llama open-weights & Orion AR glasses",
+        news: [
+          {
+            id: "meta-1",
+            headline: "Mark Zuckerberg previews Llama multimodal reasoning models & Ray-Ban Meta AI surge",
+            outlet: "Bloomberg",
+            reporter: "Kurt Wagner",
+            time: "19m ago",
+            url: "https://www.bloomberg.com",
+            summary: "Mark Zuckerberg revealed that Meta AI crossed 550 million monthly active users while AI-driven ad ranking lifted conversion rates across Reels and Threads.",
+            followUps: [
+              { time: "7m ago", text: "EssilorLuxottica extends smart-eyewear partnership with Meta into next decade." }
+            ],
+            livePool: [
+              "Threads daily active users climb past 100M milestone as advertiser adoption accelerates."
+            ]
+          }
+        ]
+      }
+    };
+
+    /* ------------------------------------------------------------------------
+       2. PERSISTENT LOCALSTORAGE STATE ENGINE
+       ------------------------------------------------------------------------ */
+    const STORAGE_KEY = "liquidpulse_ios27_state_v1";
+
+    function createDefaultUser(id, name, provider, contact = "") {
+      return {
+        id,
+        name,
+        provider,
+        contact,
+        credits: 10000.00,
+        holdings: {}, // { NVDA: { shares: 5, avgCost: 135.00 } }
+        openOrders: [], // [{ id, symbol, side, shares, limitPrice, createdAt }]
+        history: [], // [{ id, symbol, side, type, shares, price, total, time }]
+        watchlist: ["NVDA", "AAPL", "TSLA"]
+      };
+    }
+
+    let appState = {
+      activeUserId: "guest_demo",
+      users: {
+        guest_demo: createDefaultUser("guest_demo", "Demo Trader", "Local Guest", "demo@liquidpulse.io")
+      },
+      activeSymbol: "NVDA",
+      timeframe: "1D",
+      orderSide: "BUY",
+      orderType: "MARKET",
+      portfolioTab: "positions",
+      expandedNewsIds: ["nvda-1"],
+      glassTint: 0.42,
+      lightMode: false
+    };
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && parsed.users && parsed.activeUserId) {
+            appState = { ...appState, ...parsed };
+          }
+        }
+      } catch (err) {
+        console.warn("Could not read localStorage state:", err);
+      }
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+      } catch (err) {
+        console.warn("Could not persist localStorage state:", err);
+      }
+    }
+
+    function getCurrentUser() {
+      if (!appState.users[appState.activeUserId]) {
+        appState.activeUserId = Object.keys(appState.users)[0];
+      }
+      return appState.users[appState.activeUserId];
+    }
+
+    /* ------------------------------------------------------------------------
+       3. DYNAMIC ISLAND NOTIFICATIONS & OTP VERIFICATION FLOW
+       ------------------------------------------------------------------------ */
+    let islandTimeout = null;
+    let currentGeneratedOtp = null;
+    let pendingAuthContact = null;
+    let pendingAuthType = null;
+
+    function showDynamicIsland({ title, body, badgeColor = "text-blue-300", showAutoFill = false, duration = 5500 }) {
+      const island = document.getElementById("dynamicIsland");
+      const titleEl = document.getElementById("islandTitle");
+      const bodyEl = document.getElementById("islandBody");
+      const copyBtn = document.getElementById("islandCopyBtn");
+
+      titleEl.className = `text-[11px] font-semibold uppercase tracking-wider ${badgeColor}`;
+      titleEl.textContent = title;
+      bodyEl.textContent = body;
+
+      if (showAutoFill) {
+        copyBtn.classList.remove("hidden");
+      } else {
+        copyBtn.classList.add("hidden");
+      }
+
+      island.classList.add("active");
+      clearTimeout(islandTimeout);
+      islandTimeout = setTimeout(() => {
+        island.classList.remove("active");
+      }, duration);
+    }
+
+    function copyCurrentOtp() {
+      if (!currentGeneratedOtp) return;
+      const otpInput = document.getElementById("otpCodeInput");
+      otpInput.value = currentGeneratedOtp;
+      otpInput.focus();
+      // Copy via execCommand fallback per environment safety
+      try {
+        otpInput.select();
+        document.execCommand("copy");
+      } catch (_) {}
+      showDynamicIsland({
+        title: "Auto-Filled",
+        body: `Code ${currentGeneratedOtp} entered — tap Verify`,
+        badgeColor: "text-emerald-300",
+        duration: 2800
+      });
+    }
+
+    /* ------------------------------------------------------------------------
+       4. MULTI-PROVIDER AUTHENTICATION (PHONE/EMAIL OTP + GOOGLE/GITHUB/FB)
+       ------------------------------------------------------------------------ */
+    function openAuthSheet() {
+      renderSavedAccountsList();
+      document.getElementById("authSheetBackdrop").classList.add("open");
+    }
+
+    function closeAuthSheet() {
+      document.getElementById("authSheetBackdrop").classList.remove("open");
+    }
+
+    function handleBackdropClick(e) {
+      if (e.target.id === "authSheetBackdrop") closeAuthSheet();
+    }
+
+    function detectContactType() {
+      const val = document.getElementById("phoneEmailInput").value.trim();
+      const badge = document.getElementById("detectedInputBadge");
+      if (!val) {
+        badge.textContent = "Auto-Detect";
+        return;
+      }
+      if (val.includes("@")) {
+        badge.textContent = "Email Detected";
+      } else if (/^[\+\d\s\-\(\)]{7,}$/.test(val)) {
+        badge.textContent = "Phone SMS Detected";
+      } else {
+        badge.textContent = "Phone or Email";
+      }
+    }
+
+    function sendVerificationCode() {
+      const raw = document.getElementById("phoneEmailInput").value.trim();
+      if (!raw || raw.length < 4) {
+        showDynamicIsland({
+          title: "Input Required",
+          body: "Enter a valid phone number or email address",
+          badgeColor: "text-amber-300",
+          duration: 3200
+        });
+        return;
+      }
+
+      const isEmail = raw.includes("@");
+      pendingAuthContact = raw;
+      pendingAuthType = isEmail ? "Email" : "Phone";
+      currentGeneratedOtp = String(Math.floor(100000 + Math.random() * 900000));
+
+      document.getElementById("otpTargetDisplay").textContent = raw;
+      document.getElementById("authStep1").classList.add("hidden");
+      document.getElementById("authStep2").classList.remove("hidden");
+      document.getElementById("authStep2").classList.add("flex");
+      document.getElementById("otpCodeInput").value = "";
+
+      showDynamicIsland({
+        title: `${pendingAuthType} Verification`,
+        body: `Code: ${currentGeneratedOtp} (Tap Auto-Fill)`,
+        badgeColor: "text-sky-300",
+        showAutoFill: true,
+        duration: 14000
+      });
+    }
+
+    function resetAuthStep() {
+      document.getElementById("authStep2").classList.add("hidden");
+      document.getElementById("authStep2").classList.remove("flex");
+      document.getElementById("authStep1").classList.remove("hidden");
+    }
+
+    function verifyOtpAndLogin() {
+      const entered = document.getElementById("otpCodeInput").value.trim();
+      if (entered !== currentGeneratedOtp) {
+        showDynamicIsland({
+          title: "Invalid Code",
+          body: `Expected ${currentGeneratedOtp} — check Dynamic Island`,
+          badgeColor: "text-rose-400",
+          showAutoFill: true,
+          duration: 4500
+        });
+        return;
+      }
+
+      const normalizedId = `${pendingAuthType.toLowerCase()}_${pendingAuthContact.toLowerCase().replace(/[^a-z0-9]/g, "")}`;
+      const isNew = !appState.users[normalizedId];
+
+      if (isNew) {
+        const displayName = pendingAuthType === "Email"
+          ? pendingAuthContact.split("@")[0]
+          : `Phone (${pendingAuthContact.slice(-4)})`;
+        appState.users[normalizedId] = createDefaultUser(normalizedId, displayName, pendingAuthType, pendingAuthContact);
+      }
+
+      appState.activeUserId = normalizedId;
+      saveState();
+      resetAuthStep();
+      closeAuthSheet();
+      refreshAllUI();
+
+      showDynamicIsland({
+        title: isNew ? "Account Created • +10,000 CR" : "Verified & Signed In",
+        body: `Welcome back, ${appState.users[normalizedId].name}`,
+        badgeColor: "text-emerald-300",
+        duration: 4200
+      });
+    }
+
+    function loginWithOAuth(provider) {
+      const id = `oauth_${provider.toLowerCase()}`;
+      const isNew = !appState.users[id];
+      if (isNew) {
+        appState.users[id] = createDefaultUser(id, `${provider} Trader`, provider, `verified@${provider.toLowerCase()}.com`);
+      }
+      appState.activeUserId = id;
+      saveState();
+      closeAuthSheet();
+      refreshAllUI();
+
+      showDynamicIsland({
+        title: `${provider} OAuth Connected`,
+        body: isNew ? "New wallet funded with 10,000.00 Credits!" : `Signed in as ${appState.users[id].name}`,
+        badgeColor: "text-emerald-300",
+        duration: 4000
+      });
+    }
+
+    function switchProfile(userId) {
+      if (!appState.users[userId]) return;
+      appState.activeUserId = userId;
+      saveState();
+      closeAuthSheet();
+      refreshAllUI();
+      showDynamicIsland({
+        title: "Profile Switched",
+        body: `Active wallet: ${appState.users[userId].name}`,
+        badgeColor: "text-sky-300",
+        duration: 3000
+      });
+    }
+
+    function renderSavedAccountsList() {
+      const box = document.getElementById("savedAccountsBox");
+      const list = document.getElementById("savedAccountsList");
+      const users = Object.values(appState.users);
+      if (users.length === 0) {
+        box.classList.add("hidden");
+        return;
+      }
+      box.classList.remove("hidden");
+      box.classList.add("flex");
+      list.innerHTML = users.map(u => {
+        const active = u.id === appState.activeUserId;
+        return `
+          <button onclick="switchProfile('${u.id}')" class="spring-btn liquid-glass-card px-3 py-2 flex items-center justify-between text-left ${active ? 'ring-1 ring-emerald-400' : ''}">
+            <div>
+              <div class="text-xs font-bold flex items-center gap-1.5">
+                <span>${u.name}</span>
+                <span class="glass-pill px-2 py-0.2 text-[10px] text-blue-400">${u.provider}</span>
+              </div>
+              <div class="text-[11px] tabular-nums" style="color: var(--text-muted)">${u.credits.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} CR</div>
+            </div>
+            <span class="text-[11px] font-bold ${active ? 'text-emerald-400' : 'text-blue-400'}">${active ? 'Active' : 'Switch'}</span>
+          </button>
+        `;
+      }).join("");
+    }
+
+    /* ------------------------------------------------------------------------
+       5. iOS 27 LIQUID GLASS APPEARANCE CONTROLS (FROST SLIDER + THEME + SHIMMER)
+       ------------------------------------------------------------------------ */
+    function applyGlassSettings() {
+      document.documentElement.style.setProperty("--glass-tint", appState.glassTint);
+      const valPct = Math.round(appState.glassTint * 100);
+      const s1 = document.getElementById("glassOpacitySlider");
+      const s2 = document.getElementById("glassOpacitySliderMobile");
+      if (s1) s1.value = valPct;
+      if (s2) s2.value = valPct;
+
+      if (appState.lightMode) {
+        document.body.classList.add("light-glass");
+      } else {
+        document.body.classList.remove("light-glass");
+      }
+      drawStockChart();
+    }
+
+    function toggleGlassTheme() {
+      appState.lightMode = !appState.lightMode;
+      saveState();
+      applyGlassSettings();
+    }
+
+    document.getElementById("glassOpacitySlider").addEventListener("input", (e) => {
+      appState.glassTint = Number(e.target.value) / 100;
+      saveState();
+      applyGlassSettings();
+    });
+
+    document.getElementById("glassOpacitySliderMobile").addEventListener("input", (e) => {
+      appState.glassTint = Number(e.target.value) / 100;
+      saveState();
+      applyGlassSettings();
+    });
+
+    // Pointer-reactive specular reflection tracking on glass panels
+    document.addEventListener("pointermove", (e) => {
+      const target = e.target.closest(".specular-interactive");
+      if (!target) return;
+      const rect = target.getBoundingClientRect();
+      target.style.setProperty("--mx", `${e.clientX - rect.left}px`);
+      target.style.setProperty("--my", `${e.clientY - rect.top}px`);
+    });
+
+    /* ------------------------------------------------------------------------
+       6. INTERACTIVE STOCK CHART (HTML5 CANVAS WITH HOVER CROSSHAIR)
+       ------------------------------------------------------------------------ */
+    const chartHistoryCache = {};
+    let chartHoverIndex = null;
+
+    function getSeriesForStock(symbol, timeframe) {
+      const key = `${symbol}_${timeframe}`;
+      const stock = STOCKS[symbol];
+      if (!chartHistoryCache[key]) {
+        const counts = { "1D": 48, "1W": 42, "1M": 36, "1Y": 52 };
+        const n = counts[timeframe] || 48;
+        const volatility = { "1D": 0.0045, "1W": 0.011, "1M": 0.022, "1Y": 0.045 }[timeframe];
+        const pts = [];
+        let cursor = stock.prevClose * (timeframe === "1Y" ? 0.68 : timeframe === "1M" ? 0.89 : 0.985);
+        for (let i = 0; i < n - 1; i++) {
+          const drift = (stock.price - cursor) / (n - i);
+          const wave = (Math.sin(i * 0.55 + symbol.charCodeAt(0)) * 0.5 + (Math.random() - 0.48)) * stock.price * volatility;
+          cursor = Math.max(1, cursor + drift + wave);
+          pts.push(Number(cursor.toFixed(2)));
+        }
+        pts.push(stock.price);
+        chartHistoryCache[key] = pts;
+      } else {
+        const arr = chartHistoryCache[key];
+        arr[arr.length - 1] = stock.price;
+      }
+      return chartHistoryCache[key];
+    }
+
+    function drawStockChart() {
+      const canvas = document.getElementById("stockChartCanvas");
+      if (!canvas) return;
+      const rect = canvas.parentElement.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = Math.max(10, Math.floor(rect.width * dpr));
+      canvas.height = Math.max(10, Math.floor(rect.height * dpr));
+
+      const ctx = canvas.getContext("2d");
+      ctx.scale(dpr, dpr);
+      const w = rect.width;
+      const h = rect.height;
+      ctx.clearRect(0, 0, w, h);
+
+      const stock = STOCKS[appState.activeSymbol];
+      const series = getSeriesForStock(appState.activeSymbol, appState.timeframe);
+      const isUp = stock.price >= stock.prevClose;
+      const strokeColor = isUp ? "#10b981" : "#f43f5e";
+
+      const minVal = Math.min(...series) * 0.996;
+      const maxVal = Math.max(...series) * 1.004;
+      const range = Math.max(0.01, maxVal - minVal);
+
+      const padX = 12;
+      const padY = 18;
+      const plotW = w - padX * 2;
+      const plotH = h - padY * 2;
+
+      const coords = series.map((val, idx) => ({
+        x: padX + (idx / (series.length - 1)) * plotW,
+        y: padY + plotH - ((val - minVal) / range) * plotH,
+        val
+      }));
+
+      // Subtle horizontal grid lines
+      ctx.strokeStyle = appState.lightMode ? "rgba(15, 23, 42, 0.08)" : "rgba(255, 255, 255, 0.08)";
+      ctx.lineWidth = 1;
+      for (let g = 0; g <= 3; g++) {
+        const gy = padY + (plotH / 3) * g;
+        ctx.beginPath();
+        ctx.moveTo(padX, gy);
+        ctx.lineTo(w - padX, gy);
+        ctx.stroke();
+      }
+
+      // Gradient fill under curve
+      const grad = ctx.createLinearGradient(0, padY, 0, h);
+      grad.addColorStop(0, isUp ? "rgba(16, 185, 129, 0.34)" : "rgba(244, 63, 94, 0.34)");
+      grad.addColorStop(1, "rgba(16, 185, 129, 0.0)");
+
+      ctx.beginPath();
+      ctx.moveTo(coords[0].x, h - padY);
+      coords.forEach((pt, i) => {
+        if (i === 0) ctx.lineTo(pt.x, pt.y);
+        else {
+          const prev = coords[i - 1];
+          const cx = (prev.x + pt.x) / 2;
+          ctx.quadraticCurveTo(prev.x, prev.y, cx, (prev.y + pt.y) / 2);
+        }
+      });
+      ctx.lineTo(coords[coords.length - 1].x, coords[coords.length - 1].y);
+      ctx.lineTo(coords[coords.length - 1].x, h - padY);
+      ctx.closePath();
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      // Main price stroke
+      ctx.beginPath();
+      coords.forEach((pt, i) => {
+        if (i === 0) ctx.moveTo(pt.x, pt.y);
+        else {
+          const prev = coords[i - 1];
+          const cx = (prev.x + pt.x) / 2;
+          ctx.quadraticCurveTo(prev.x, prev.y, cx, (prev.y + pt.y) / 2);
+        }
+      });
+      ctx.lineTo(coords[coords.length - 1].x, coords[coords.length - 1].y);
+      ctx.strokeStyle = strokeColor;
+      ctx.lineWidth = 2.6;
+      ctx.stroke();
+
+      // Live pulsing dot on latest price
+      const last = coords[coords.length - 1];
+      ctx.beginPath();
+      ctx.arc(last.x, last.y, 4.5, 0, Math.PI * 2);
+      ctx.fillStyle = strokeColor;
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(last.x, last.y, 8, 0, Math.PI * 2);
+      ctx.fillStyle = isUp ? "rgba(16,185,129,0.28)" : "rgba(244,63,94,0.28)";
+      ctx.fill();
+
+      // Hover crosshair
+      if (chartHoverIndex !== null && coords[chartHoverIndex]) {
+        const hp = coords[chartHoverIndex];
+        ctx.beginPath();
+        ctx.setLineDash([4, 4]);
+        ctx.moveTo(hp.x, padY);
+        ctx.lineTo(hp.x, h - padY);
+        ctx.strokeStyle = appState.lightMode ? "rgba(15,23,42,0.45)" : "rgba(255,255,255,0.45)";
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.beginPath();
+        ctx.arc(hp.x, hp.y, 5.5, 0, Math.PI * 2);
+        ctx.fillStyle = "#ffffff";
+        ctx.fill();
+        ctx.lineWidth = 2.5;
+        ctx.strokeStyle = strokeColor;
+        ctx.stroke();
+      }
+    }
+
+    const chartCanvasEl = document.getElementById("stockChartCanvas");
+    chartCanvasEl.addEventListener("pointermove", (e) => {
+      const rect = chartCanvasEl.getBoundingClientRect();
+      const series = getSeriesForStock(appState.activeSymbol, appState.timeframe);
+      const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+      chartHoverIndex = Math.round(ratio * (series.length - 1));
+      const hoveredPrice = series[chartHoverIndex];
+      document.getElementById("chartHoverReadout").textContent =
+        `${appState.activeSymbol} (${appState.timeframe}) • $${hoveredPrice.toFixed(2)}`;
+      drawStockChart();
+    });
+
+    chartCanvasEl.addEventListener("pointerleave", () => {
+      chartHoverIndex = null;
+      document.getElementById("chartHoverReadout").textContent = "Hover chart to inspect price";
+      drawStockChart();
+    });
+
+    window.addEventListener("resize", drawStockChart);
+
+    /* ------------------------------------------------------------------------
+       7. PAPER TRADING ENGINE (MARKET & LIMIT ORDERS + PORTFOLIO VALUATION)
+       ------------------------------------------------------------------------ */
+    function selectStock(symbol) {
+      if (!STOCKS[symbol]) return;
+      appState.activeSymbol = symbol;
+      // Auto-expand top story for that stock so live follow-ups are immediately visible
+      const topNews = STOCKS[symbol].news[0];
+      if (topNews && !appState.expandedNewsIds.includes(topNews.id)) {
+        appState.expandedNewsIds.push(topNews.id);
+      }
+      saveState();
+      refreshAllUI();
+    }
+
+    function setTimeframe(tf) {
+      appState.timeframe = tf;
+      saveState();
+      document.querySelectorAll(".tf-btn").forEach(btn => {
+        btn.classList.toggle("glass-pill-active", btn.dataset.tf === tf);
+      });
+      drawStockChart();
+    }
+
+    function setOrderSide(side) {
+      appState.orderSide = side;
+      const buyBtn = document.getElementById("sideBuyBtn");
+      const sellBtn = document.getElementById("sideSellBtn");
+      const submitBtn = document.getElementById("submitOrderBtn");
+
+      if (side === "BUY") {
+        buyBtn.className = "spring-btn px-4 py-1.5 rounded-full text-xs font-extrabold bg-emerald-500 text-white shadow";
+        sellBtn.className = "spring-btn px-4 py-1.5 rounded-full text-xs font-extrabold";
+        sellBtn.style.color = "var(--text-secondary)";
+        submitBtn.className = "spring-btn w-full py-2.5 px-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-extrabold text-xs sm:text-sm shadow-lg";
+        submitBtn.textContent = `Buy ${appState.activeSymbol}`;
+      } else {
+        sellBtn.className = "spring-btn px-4 py-1.5 rounded-full text-xs font-extrabold bg-rose-500 text-white shadow";
+        buyBtn.className = "spring-btn px-4 py-1.5 rounded-full text-xs font-extrabold";
+        buyBtn.style.color = "var(--text-secondary)";
+        submitBtn.className = "spring-btn w-full py-2.5 px-4 rounded-2xl bg-gradient-to-r from-rose-500 to-pink-600 text-white font-extrabold text-xs sm:text-sm shadow-lg";
+        submitBtn.textContent = `Sell ${appState.activeSymbol}`;
+      }
+      updateOrderPreview();
+    }
+
+    function setOrderType(type) {
+      appState.orderType = type;
+      const mBtn = document.getElementById("typeMarketBtn");
+      const lBtn = document.getElementById("typeLimitBtn");
+      const priceInput = document.getElementById("orderLimitInput");
+      const label = document.getElementById("priceInputLabel");
+      const stock = STOCKS[appState.activeSymbol];
+
+      if (type === "MARKET") {
+        mBtn.classList.add("glass-pill-active");
+        lBtn.classList.remove("glass-pill-active");
+        priceInput.disabled = true;
+        priceInput.classList.add("opacity-75");
+        priceInput.value = stock.price.toFixed(2);
+        label.textContent = "Market Price (Credits)";
+      } else {
+        lBtn.classList.add("glass-pill-active");
+        mBtn.classList.remove("glass-pill-active");
+        priceInput.disabled = false;
+        priceInput.classList.remove("opacity-75");
+        priceInput.value = (appState.orderSide === "BUY" ? stock.price * 0.99 : stock.price * 1.01).toFixed(2);
+        label.textContent = "Limit Target Price";
+      }
+      updateOrderPreview();
+    }
+
+    function setMaxShares() {
+      const user = getCurrentUser();
+      const stock = STOCKS[appState.activeSymbol];
+      const execPrice = appState.orderType === "LIMIT"
+        ? Math.max(0.01, Number(document.getElementById("orderLimitInput").value) || stock.price)
+        : stock.price;
+
+      if (appState.orderSide === "BUY") {
+        const maxBuy = Math.floor((user.credits / execPrice) * 100) / 100;
+        document.getElementById("orderSharesInput").value = Math.max(0, maxBuy);
+      } else {
+        const pos = user.holdings[appState.activeSymbol];
+        document.getElementById("orderSharesInput").value = pos ? pos.shares : 0;
+      }
+      updateOrderPreview();
+    }
+
+    function updateOrderPreview() {
+      const stock = STOCKS[appState.activeSymbol];
+      const shares = Math.max(0, Number(document.getElementById("orderSharesInput").value) || 0);
+      const priceInput = document.getElementById("orderLimitInput");
+      if (appState.orderType === "MARKET") {
+        priceInput.value = stock.price.toFixed(2);
+      }
+      const unitPrice = Math.max(0.01, Number(priceInput.value) || stock.price);
+      const total = shares * unitPrice;
+
+      document.getElementById("orderTotalCredits").textContent = `${total.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} CR`;
+      document.getElementById("submitOrderBtn").textContent =
+        `${appState.orderSide === "BUY" ? "Buy" : "Sell"} ${appState.activeSymbol}`;
+    }
+
+    function executeOrder() {
+      const user = getCurrentUser();
+      const stock = STOCKS[appState.activeSymbol];
+      const shares = Number(document.getElementById("orderSharesInput").value);
+      if (!shares || shares <= 0) {
+        showDynamicIsland({ title: "Invalid Quantity", body: "Enter more than 0 shares", badgeColor: "text-amber-300", duration: 3000 });
+        return;
+      }
+
+      const unitPrice = appState.orderType === "MARKET"
+        ? stock.price
+        : Number(document.getElementById("orderLimitInput").value);
+
+      if (!unitPrice || unitPrice <= 0) return;
+      const totalCost = Number((shares * unitPrice).toFixed(2));
+
+      // Check if Limit Order should rest in Open Orders
+      const isExecutableNow = appState.orderType === "MARKET" ||
+        (appState.orderSide === "BUY" && unitPrice >= stock.price) ||
+        (appState.orderSide === "SELL" && unitPrice <= stock.price);
+
+      if (!isExecutableNow) {
+        if (appState.orderSide === "BUY" && totalCost > user.credits) {
+          showDynamicIsland({ title: "Insufficient Credits", body: "Not enough credits to reserve limit buy", badgeColor: "text-rose-400", duration: 3500 });
+          return;
+        }
+        const owned = user.holdings[stock.symbol]?.shares || 0;
+        if (appState.orderSide === "SELL" && shares > owned) {
+          showDynamicIsland({ title: "Insufficient Shares", body: `You only hold ${owned} ${stock.symbol}`, badgeColor: "text-rose-400", duration: 3500 });
+          return;
+        }
+
+        if (appState.orderSide === "BUY") user.credits = Number((user.credits - totalCost).toFixed(2));
+        user.openOrders.unshift({
+          id: `ord_${Date.now()}`,
+          symbol: stock.symbol,
+          side: appState.orderSide,
+          shares,
+          limitPrice: unitPrice,
+          createdAt: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+        });
+        saveState();
+        refreshAllUI();
+        showDynamicIsland({
+          title: "Limit Order Placed",
+          body: `${appState.orderSide} ${shares} ${stock.symbol} @ $${unitPrice.toFixed(2)}`,
+          badgeColor: "text-sky-300",
+          duration: 3800
+        });
+        return;
+      }
+
+      // Immediate Market Execution
+      if (appState.orderSide === "BUY") {
+        if (totalCost > user.credits) {
+          showDynamicIsland({
+            title: "Insufficient Credits",
+            body: `Need ${totalCost.toFixed(2)} CR (Have ${user.credits.toFixed(2)} CR)`,
+            badgeColor: "text-rose-400",
+            duration: 3600
+          });
+          return;
+        }
+        user.credits = Number((user.credits - totalCost).toFixed(2));
+        const existing = user.holdings[stock.symbol] || { shares: 0, avgCost: 0 };
+        const newShares = Number((existing.shares + shares).toFixed(4));
+        const newAvg = ((existing.shares * existing.avgCost) + totalCost) / newShares;
+        user.holdings[stock.symbol] = { shares: newShares, avgCost: Number(newAvg.toFixed(2)) };
+      } else {
+        const existing = user.holdings[stock.symbol];
+        if (!existing || existing.shares < shares) {
+          showDynamicIsland({
+            title: "Insufficient Shares",
+            body: `You own ${(existing?.shares || 0)} shares of ${stock.symbol}`,
+            badgeColor: "text-rose-400",
+            duration: 3600
+          });
+          return;
+        }
+        user.credits = Number((user.credits + totalCost).toFixed(2));
+        const remaining = Number((existing.shares - shares).toFixed(4));
+        if (remaining <= 0.00001) {
+          delete user.holdings[stock.symbol];
+        } else {
+          user.holdings[stock.symbol] = { shares: remaining, avgCost: existing.avgCost };
+        }
+      }
+
+      user.history.unshift({
+        id: `trd_${Date.now()}`,
+        symbol: stock.symbol,
+        side: appState.orderSide,
+        type: appState.orderType,
+        shares,
+        price: unitPrice,
+        total: totalCost,
+        time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })
+      });
+
+      saveState();
+      refreshAllUI();
+
+      showDynamicIsland({
+        title: `${appState.orderSide} Order Filled`,
+        body: `${shares} ${stock.symbol} @ $${unitPrice.toFixed(2)} (${totalCost.toFixed(2)} CR)`,
+        badgeColor: "text-emerald-300",
+        duration: 3800
+      });
+    }
+
+    function cancelOpenOrder(orderId) {
+      const user = getCurrentUser();
+      const idx = user.openOrders.findIndex(o => o.id === orderId);
+      if (idx === -1) return;
+      const ord = user.openOrders[idx];
+      if (ord.side === "BUY") {
+        user.credits = Number((user.credits + ord.shares * ord.limitPrice).toFixed(2));
+      }
+      user.openOrders.splice(idx, 1);
+      saveState();
+      refreshAllUI();
+    }
+
+    function resetAccountCredits() {
+      const user = getCurrentUser();
+      user.credits = 10000.00;
+      user.holdings = {};
+      user.openOrders = [];
+      user.history = [];
+      saveState();
+      refreshAllUI();
+      showDynamicIsland({
+        title: "Wallet Reset",
+        body: "Balance restored to 10,000.00 Credits",
+        badgeColor: "text-sky-300",
+        duration: 3200
+      });
+    }
+
+    function toggleWatchlist() {
+      const user = getCurrentUser();
+      const sym = appState.activeSymbol;
+      const idx = user.watchlist.indexOf(sym);
+      if (idx >= 0) {
+        user.watchlist.splice(idx, 1);
+      } else {
+        user.watchlist.push(sym);
+      }
+      saveState();
+      refreshAllUI();
+    }
+
+    function setPortfolioTab(tab) {
+      appState.portfolioTab = tab;
+      saveState();
+      document.querySelectorAll(".ptab-btn").forEach(btn => {
+        btn.classList.toggle("glass-pill-active", btn.dataset.ptab === tab);
+      });
+      renderPortfolioTabContent();
+    }
+
+    function renderPortfolioTabContent() {
+      const container = document.getElementById("portfolioTabContent");
+      const user = getCurrentUser();
+      const tab = appState.portfolioTab;
+
+      if (tab === "positions") {
+        const entries = Object.entries(user.holdings);
+        if (entries.length === 0) {
+          container.innerHTML = `
+            <div class="liquid-glass-card p-6 text-center text-xs" style="color: var(--text-muted)">
+              No open stock positions yet. Use the order ticket above to invest your 10,000 credits!
+            </div>`;
+          return;
+        }
+        container.innerHTML = `
+          <div class="flex flex-col gap-2">
+            ${entries.map(([sym, pos]) => {
+              const st = STOCKS[sym];
+              const mktVal = pos.shares * st.price;
+              const pnl = mktVal - pos.shares * pos.avgCost;
+              const pnlPct = ((st.price - pos.avgCost) / pos.avgCost) * 100;
+              const isPos = pnl >= 0;
+              return `
+                <div onclick="selectStock('${sym}')" class="spring-btn liquid-glass-card px-3.5 py-2.5 flex items-center justify-between gap-2">
+                  <div>
+                    <div class="font-extrabold text-xs sm:text-sm">${sym} <span class="font-normal text-[11px]" style="color: var(--text-muted)">• ${pos.shares} sh @ $${pos.avgCost.toFixed(2)}</span></div>
+                    <div class="text-[11px]" style="color: var(--text-secondary)">Live Price: $${st.price.toFixed(2)}</div>
+                  </div>
+                  <div class="text-right tabular-nums">
+                    <div class="font-extrabold text-xs sm:text-sm">${mktVal.toFixed(2)} CR</div>
+                    <div class="text-[11px] font-bold ${isPos ? 'text-emerald-400' : 'text-rose-400'}">
+                      ${isPos ? '+' : ''}${pnl.toFixed(2)} (${isPos ? '+' : ''}${pnlPct.toFixed(2)}%)
+                    </div>
+                  </div>
+                </div>`;
+            }).join("")}
+          </div>`;
+      } else if (tab === "orders") {
+        if (user.openOrders.length === 0) {
+          container.innerHTML = `<div class="liquid-glass-card p-6 text-center text-xs" style="color: var(--text-muted)">No pending limit orders. Switch to "Limit Order" above to queue target prices.</div>`;
+          return;
+        }
+        container.innerHTML = `
+          <div class="flex flex-col gap-2">
+            ${user.openOrders.map(o => `
+              <div class="liquid-glass-card px-3.5 py-2.5 flex items-center justify-between gap-2">
+                <div>
+                  <span class="text-xs font-extrabold ${o.side === 'BUY' ? 'text-emerald-400' : 'text-rose-400'}">${o.side}</span>
+                  <span class="text-xs font-bold"> ${o.shares} ${o.symbol} @ $${o.limitPrice.toFixed(2)}</span>
+                  <div class="text-[10px]" style="color: var(--text-muted)">Placed ${o.createdAt} • Waiting for live price trigger</div>
+                </div>
+                <button onclick="cancelOpenOrder('${o.id}')" class="spring-btn glass-pill px-3 py-1 text-[11px] font-bold text-rose-400">Cancel</button>
+              </div>`).join("")}
+          </div>`;
+      } else if (tab === "history") {
+        if (user.history.length === 0) {
+          container.innerHTML = `<div class="liquid-glass-card p-6 text-center text-xs" style="color: var(--text-muted)">No executed trades yet.</div>`;
+          return;
+        }
+        container.innerHTML = `
+          <div class="flex flex-col gap-2 max-h-56 overflow-y-auto">
+            ${user.history.map(h => `
+              <div class="liquid-glass-card px-3.5 py-2 flex items-center justify-between text-xs">
+                <div>
+                  <span class="font-extrabold ${h.side === 'BUY' ? 'text-emerald-400' : 'text-rose-400'}">${h.side}</span>
+                  <span class="font-bold"> ${h.shares} ${h.symbol}</span>
+                  <span style="color: var(--text-muted)"> @ $${h.price.toFixed(2)}</span>
+                </div>
+                <div class="text-right tabular-nums">
+                  <div class="font-bold">${h.total.toFixed(2)} CR</div>
+                  <div class="text-[10px]" style="color: var(--text-muted)">${h.time}</div>
+                </div>
+              </div>`).join("")}
+          </div>`;
+      } else if (tab === "watchlist") {
+        if (user.watchlist.length === 0) {
+          container.innerHTML = `<div class="liquid-glass-card p-6 text-center text-xs" style="color: var(--text-muted)">Star any stock above to add it to your watchlist.</div>`;
+          return;
+        }
+        container.innerHTML = `
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            ${user.watchlist.map(sym => {
+              const st = STOCKS[sym];
+              if (!st) return "";
+              const diff = st.price - st.prevClose;
+              const pct = (diff / st.prevClose) * 100;
+              return `
+                <button onclick="selectStock('${sym}')" class="spring-btn liquid-glass-card px-3.5 py-2.5 flex items-center justify-between text-left">
+                  <div>
+                    <div class="font-extrabold text-xs">${sym}</div>
+                    <div class="text-[11px] truncate max-w-[130px]" style="color: var(--text-muted)">${st.name}</div>
+                  </div>
+                  <div class="text-right tabular-nums">
+                    <div class="font-bold text-xs">$${st.price.toFixed(2)}</div>
+                    <div class="text-[10px] font-bold ${diff >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${diff >= 0 ? '+' : ''}${pct.toFixed(2)}%</div>
+                  </div>
+                </button>`;
+            }).join("")}
+          </div>`;
+      }
+    }
+
+    /* ------------------------------------------------------------------------
+       8. RIGHT PANE: LIVE CONTEXTUAL NEWS & AUTO-STREAMING FOLLOW-UP THREADS
+       ------------------------------------------------------------------------ */
+    function toggleNewsExpand(newsId) {
+      const idx = appState.expandedNewsIds.indexOf(newsId);
+      if (idx >= 0) {
+        appState.expandedNewsIds.splice(idx, 1);
+      } else {
+        appState.expandedNewsIds.push(newsId);
+      }
+      saveState();
+      renderNewsFeed();
+    }
+
+    function appendLiveFollowUp(symbol, specificNewsId = null) {
+      const stock = STOCKS[symbol];
+      if (!stock || !stock.news.length) return;
+      const targetNews = specificNewsId
+        ? stock.news.find(n => n.id === specificNewsId) || stock.news[0]
+        : stock.news[0];
+
+      const pool = targetNews.livePool;
+      const templateText = pool && pool.length > 0
+        ? pool[targetNews.followUps.length % pool.length]
+        : `${stock.name} trading volume surges following desk commentary on ${targetNews.headline.slice(0, 42)}...`;
+
+      const nowStr = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+      targetNews.followUps.unshift({
+        time: `LIVE • ${nowStr}`,
+        text: templateText,
+        isNew: true
+      });
+
+      if (!appState.expandedNewsIds.includes(targetNews.id)) {
+        appState.expandedNewsIds.push(targetNews.id);
+      }
+
+      if (appState.activeSymbol === symbol) {
+        renderNewsFeed();
+      }
+    }
+
+    function triggerManualFollowUp() {
+      const sym = appState.activeSymbol;
+      const expandedForSym = STOCKS[sym].news.find(n => appState.expandedNewsIds.includes(n.id));
+      appendLiveFollowUp(sym, expandedForSym ? expandedForSym.id : null);
+      showDynamicIsland({
+        title: `${sym} Breaking Wire`,
+        body: "New live follow-up appended beneath active story",
+        badgeColor: "text-rose-400",
+        duration: 2800
+      });
+    }
+
+    function renderNewsFeed() {
+      const stock = STOCKS[appState.activeSymbol];
+      document.getElementById("newsPaneTitle").textContent = `${stock.symbol} Live Wire`;
+      document.getElementById("newsPaneSubtitle").textContent = stock.subtitle;
+
+      const container = document.getElementById("newsFeedContainer");
+      container.innerHTML = stock.news.map(item => {
+        const isExpanded = appState.expandedNewsIds.includes(item.id);
+        return `
+          <article class="news-card liquid-glass-card specular-interactive p-3.5 sm:p-4 transition-all ${isExpanded ? 'expanded ring-1 ring-sky-400/45' : ''}">
+            <!-- Clickable Headline Header -->
+            <div onclick="toggleNewsExpand('${item.id}')" class="cursor-pointer flex flex-col gap-2">
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2">
+                  <span class="glass-pill px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-sky-400">${item.outlet}</span>
+                  <span class="text-[11px] font-medium" style="color: var(--text-muted)">By ${item.reporter}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  ${item.followUps.length > 0 ? `<span class="glass-pill px-2 py-0.5 text-[10px] font-bold text-rose-400">${item.followUps.length} Live Updates</span>` : ""}
+                  <span class="text-[11px] tabular-nums" style="color: var(--text-muted)">${item.time}</span>
+                </div>
+              </div>
+
+              <h3 class="text-sm sm:text-[15px] font-extrabold leading-snug tracking-tight">
+                ${item.headline}
+              </h3>
+            </div>
+
+            <!-- Expandable Summary + Bottom-Left Attribution Link + Live Follow-Up Thread -->
+            <div class="news-expand-grid">
+              <div class="news-expand-inner">
+                <div class="pt-3 mt-3 border-t border-white/10 flex flex-col gap-3">
+                  <!-- Editorial Summary -->
+                  <p class="text-xs leading-relaxed" style="color: var(--text-secondary)">
+                    ${item.summary}
+                  </p>
+
+                  <!-- Reporter Attribution & External Link Pinned at Bottom-Left -->
+                  <div class="flex items-center justify-between gap-2 pt-1">
+                    <a
+                      href="${item.url}"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onclick="event.stopPropagation()"
+                      class="spring-btn glass-pill px-3 py-1 text-[11px] font-bold text-blue-400 hover:text-blue-300 inline-flex items-center gap-1.5"
+                    >
+                      <span>${item.outlet} • ${item.reporter}</span>
+                      <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      </svg>
+                    </a>
+                    <span class="text-[10px] font-semibold uppercase tracking-wider" style="color: var(--text-muted)">Thread Active</span>
+                  </div>
+
+                  <!-- Live Follow-Up Thread Appearing Directly Under Current News -->
+                  <div class="pl-3 border-l-2 border-rose-500/70 flex flex-col gap-2 mt-1">
+                    <div class="flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-wider text-rose-400">
+                      <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span>
+                      <span>Live Follow-Up Coverage</span>
+                    </div>
+                    ${item.followUps.length === 0
+                      ? `<div class="text-[11px] italic" style="color: var(--text-muted)">Listening for follow-up dispatches from ${item.outlet}...</div>`
+                      : item.followUps.map(fu => {
+                          const animClass = fu.isNew ? "followup-item-new" : "";
+                          fu.isNew = false;
+                          return `
+                            <div class="${animClass} glass-pill rounded-2xl px-3 py-2 flex flex-col gap-0.5">
+                              <div class="flex items-center justify-between text-[10px] font-bold">
+                                <span class="text-rose-400">LIVE UPDATE</span>
+                                <span style="color: var(--text-muted)">${fu.time}</span>
+                              </div>
+                              <p class="text-[11px] leading-snug font-medium" style="color: var(--text-primary)">${fu.text}</p>
+                            </div>`;
+                        }).join("")}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </article>`;
+      }).join("");
+    }
+
+    /* ------------------------------------------------------------------------
+       9. REAL-TIME SIMULATION LOOP (LIVE TICKER PRICES + AUTO NEWS UPDATES)
+       ------------------------------------------------------------------------ */
+    function tickLiveMarket() {
+      const user = getCurrentUser();
+      Object.values(STOCKS).forEach(st => {
+        const deltaPct = (Math.random() - 0.492) * 0.0042;
+        const oldPrice = st.price;
+        st.price = Math.max(1, Number((st.price * (1 + deltaPct)).toFixed(2)));
+        st.high = Math.max(st.high, st.price);
+        st.low = Math.min(st.low, st.price);
+
+        // Check if any Open Limit Orders trigger on live tick
+        for (let i = user.openOrders.length - 1; i >= 0; i--) {
+          const ord = user.openOrders[i];
+          if (ord.symbol !== st.symbol) continue;
+          const hit = (ord.side === "BUY" && st.price <= ord.limitPrice) ||
+                      (ord.side === "SELL" && st.price >= ord.limitPrice);
+          if (hit) {
+            const total = Number((ord.shares * st.price).toFixed(2));
+            if (ord.side === "BUY") {
+              const refund = Number((ord.shares * ord.limitPrice - total).toFixed(2));
+              user.credits = Number((user.credits + refund).toFixed(2));
+              const ex = user.holdings[st.symbol] || { shares: 0, avgCost: 0 };
+              const ns = Number((ex.shares + ord.shares).toFixed(4));
+              user.holdings[st.symbol] = {
+                shares: ns,
+                avgCost: Number((((ex.shares * ex.avgCost) + total) / ns).toFixed(2))
+              };
+            } else {
+              const ex = user.holdings[st.symbol];
+              if (ex && ex.shares >= ord.shares) {
+                user.credits = Number((user.credits + total).toFixed(2));
+                const rem = Number((ex.shares - ord.shares).toFixed(4));
+                if (rem <= 0.00001) delete user.holdings[st.symbol];
+                else user.holdings[st.symbol] = { shares: rem, avgCost: ex.avgCost };
+              }
+            }
+            user.history.unshift({
+              id: `trd_${Date.now()}`,
+              symbol: st.symbol,
+              side: ord.side,
+              type: "LIMIT",
+              shares: ord.shares,
+              price: st.price,
+              total,
+              time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })
+            });
+            user.openOrders.splice(i, 1);
+            saveState();
+            showDynamicIsland({
+              title: "Limit Order Triggered!",
+              body: `${ord.side} ${ord.shares} ${st.symbol} filled @ $${st.price.toFixed(2)}`,
+              badgeColor: "text-emerald-300",
+              duration: 4200
+            });
+          }
+        }
+
+        if (st.symbol === appState.activeSymbol) {
+          const box = document.getElementById("livePriceBox");
+          box.classList.remove("tick-up", "tick-down");
+          void box.offsetWidth;
+          box.classList.add(st.price >= oldPrice ? "tick-up" : "tick-down");
+        }
+      });
+
+      updateLiveNumbersOnly();
+    }
+
+    function updateLiveNumbersOnly() {
+      const user = getCurrentUser();
+      const stock = STOCKS[appState.activeSymbol];
+      const diff = stock.price - stock.prevClose;
+      const pct = (diff / stock.prevClose) * 100;
+      const isUp = diff >= 0;
+
+      document.getElementById("stockLivePrice").textContent = `$${stock.price.toFixed(2)}`;
+      const chgEl = document.getElementById("stockPriceChange");
+      chgEl.textContent = `${isUp ? "+" : ""}${diff.toFixed(2)} (${isUp ? "+" : ""}${pct.toFixed(2)}%) Today`;
+      chgEl.className = `text-xs sm:text-sm font-bold tabular-nums ${isUp ? "text-emerald-400" : "text-rose-400"}`;
+
+      document.getElementById("statHigh").textContent = `$${stock.high.toFixed(2)}`;
+      document.getElementById("statLow").textContent = `$${stock.low.toFixed(2)}`;
+
+      // Update Header Credits & Net Worth
+      let holdingsValue = 0;
+      Object.entries(user.holdings).forEach(([sym, pos]) => {
+        if (STOCKS[sym]) holdingsValue += pos.shares * STOCKS[sym].price;
+      });
+      const netWorth = user.credits + holdingsValue;
+
+      document.getElementById("headerCredits").textContent =
+        user.credits.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      document.getElementById("headerNetWorth").textContent =
+        netWorth.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+      document.getElementById("availablePowerText").textContent =
+        `Available Buying Power: ${user.credits.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Credits`;
+      const owned = user.holdings[stock.symbol]?.shares || 0;
+      document.getElementById("ownedSharesText").textContent = `Currently Owned: ${owned} shares`;
+
+      // Update Ticker Strip Prices
+      Object.values(STOCKS).forEach(st => {
+        const pillPrice = document.getElementById(`strip_price_${st.symbol}`);
+        const pillPct = document.getElementById(`strip_pct_${st.symbol}`);
+        if (pillPrice && pillPct) {
+          const d = ((st.price - st.prevClose) / st.prevClose) * 100;
+          pillPrice.textContent = `$${st.price.toFixed(2)}`;
+          pillPct.textContent = `${d >= 0 ? "+" : ""}${d.toFixed(2)}%`;
+          pillPct.className = `text-[10px] font-bold tabular-nums ${d >= 0 ? "text-emerald-400" : "text-rose-400"}`;
+        }
+      });
+
+      updateOrderPreview();
+      drawStockChart();
+      if (appState.portfolioTab === "positions" || appState.portfolioTab === "watchlist") {
+        renderPortfolioTabContent();
+      }
+    }
+
+    function refreshAllUI() {
+      const user = getCurrentUser();
+      const stock = STOCKS[appState.activeSymbol];
+
+      // Account Header Button
+      document.getElementById("accountLabel").textContent = user.name;
+      document.getElementById("accountAvatar").textContent = user.name.charAt(0).toUpperCase();
+
+      // Ticker Strip
+      document.getElementById("tickerStrip").innerHTML = Object.values(STOCKS).map(st => {
+        const active = st.symbol === appState.activeSymbol;
+        const d = ((st.price - st.prevClose) / st.prevClose) * 100;
+        return `
+          <button onclick="selectStock('${st.symbol}')" class="spring-btn glass-pill ${active ? 'glass-pill-active ring-1 ring-sky-400/60' : ''} px-3.5 py-2 flex items-center gap-2.5 shrink-0">
+            <span class="font-extrabold text-xs">${st.symbol}</span>
+            <span id="strip_price_${st.symbol}" class="text-xs font-semibold tabular-nums">$${st.price.toFixed(2)}</span>
+            <span id="strip_pct_${st.symbol}" class="text-[10px] font-bold tabular-nums ${d >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${d >= 0 ? '+' : ''}${d.toFixed(2)}%</span>
+          </button>`;
+      }).join("");
+
+      // Selected Stock Header Details
+      const badge = document.getElementById("stockLogoBadge");
+      badge.className = `w-12 h-12 rounded-2xl bg-gradient-to-br ${stock.color} flex items-center justify-center text-white font-extrabold text-sm shadow-md`;
+      badge.textContent = stock.symbol;
+
+      document.getElementById("stockName").textContent = stock.name;
+      document.getElementById("stockSymbolBadge").textContent = stock.symbol;
+      document.getElementById("stockSector").textContent = stock.sector;
+      document.getElementById("statOpen").textContent = `$${stock.open.toFixed(2)}`;
+      document.getElementById("statVol").textContent = stock.volume;
+      document.getElementById("statCap").textContent = stock.mktCap;
+
+      // Watchlist Star State
+      const inWatchlist = user.watchlist.includes(stock.symbol);
+      const starIcon = document.getElementById("watchlistStarIcon");
+      starIcon.setAttribute("fill", inWatchlist ? "currentColor" : "none");
+
+      // Badges
+      document.getElementById("posCountBadge").textContent = Object.keys(user.holdings).length;
+      document.getElementById("openOrderBadge").textContent = user.openOrders.length;
+
+      setOrderSide(appState.orderSide);
+      setOrderType(appState.orderType);
+      updateLiveNumbersOnly();
+      renderPortfolioTabContent();
+      renderNewsFeed();
+    }
+
+    /* ------------------------------------------------------------------------
+       10. SEARCH BAR AUTOCOMPLETE
+       ------------------------------------------------------------------------ */
+    const searchInput = document.getElementById("tickerSearchInput");
+    const searchDropdown = document.getElementById("searchDropdown");
+
+    searchInput.addEventListener("input", () => {
+      const q = searchInput.value.trim().toLowerCase();
+      if (!q) {
+        searchDropdown.classList.add("hidden");
+        return;
+      }
+      const matches = Object.values(STOCKS).filter(
+        s => s.symbol.toLowerCase().includes(q) || s.name.toLowerCase().includes(q)
+      );
+      if (matches.length === 0) {
+        searchDropdown.innerHTML = `<div class="p-3 text-xs" style="color: var(--text-muted)">No matching stocks found</div>`;
+      } else {
+        searchDropdown.innerHTML = matches.map(s => `
+          <button onclick="selectStock('${s.symbol}'); searchDropdown.classList.add('hidden'); searchInput.value='';" class="spring-btn w-full px-3 py-2 rounded-xl hover:bg-white/10 flex items-center justify-between text-left">
+            <div>
+              <span class="font-extrabold text-xs">${s.symbol}</span>
+              <span class="text-xs ml-1.5" style="color: var(--text-secondary)">${s.name}</span>
+            </div>
+            <span class="text-xs font-bold tabular-nums">$${s.price.toFixed(2)}</span>
+          </button>`).join("");
+      }
+      searchDropdown.classList.remove("hidden");
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!searchInput.contains(e.target) && !searchDropdown.contains(e.target)) {
+        searchDropdown.classList.add("hidden");
+      }
+    });
+
+    /* ------------------------------------------------------------------------
+       11. BOOTSTRAP ON WINDOW LOAD
+       ------------------------------------------------------------------------ */
+    window.addEventListener("load", () => {
+      loadState();
+      applyGlassSettings();
+      refreshAllUI();
+
+      // Live market price ticks every 1.8 seconds
+      setInterval(tickLiveMarket, 1800);
+
+      // Automatic live news follow-up dispatches every 9.5 seconds for active ticker
+      setInterval(() => {
+        const sym = appState.activeSymbol;
+        const expandedStory = STOCKS[sym].news.find(n => appState.expandedNewsIds.includes(n.id));
+        if (expandedStory) {
+          appendLiveFollowUp(sym, expandedStory.id);
+        }
+      }, 9500);
+    });
+  </script>
+</body>
+</html>
