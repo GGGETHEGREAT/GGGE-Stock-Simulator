@@ -1,0 +1,4066 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Markets & Live Wire Terminal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ==========================================================================
+       1. APPLE iOS 18 / macOS SEQUOIA DESIGN TOKENS (LIGHT MODE DEFAULT)
+       ========================================================================== */
+    :root {
+      --bg-canvas: #F2F2F7;
+      --bg-card: #FFFFFF;
+      --bg-card-secondary: #F9F9FB;
+      --bg-fill: rgba(118, 118, 128, 0.12);
+      --bg-fill-hover: rgba(118, 118, 128, 0.18);
+      --border-subtle: rgba(0, 0, 0, 0.06);
+      --border-strong: rgba(0, 0, 0, 0.12);
+      --text-primary: #1D1D1F;
+      --text-secondary: #6E6E73;
+      --text-tertiary: #8E8E93;
+
+      /* Apple System Semantic Colors */
+      --apple-blue: #007AFF;
+      --apple-blue-bg: rgba(0, 122, 255, 0.10);
+      --apple-blue-border: rgba(0, 122, 255, 0.24);
+      --apple-green: #34C759;
+      --apple-green-text: #248A3D;
+      --apple-green-bg: rgba(52, 199, 89, 0.12);
+      --apple-green-border: rgba(52, 199, 89, 0.28);
+      --apple-red: #FF3B30;
+      --apple-red-text: #D70015;
+      --apple-red-bg: rgba(255, 59, 48, 0.10);
+      --apple-red-border: rgba(255, 59, 48, 0.26);
+      --apple-orange: #FF9500;
+      --apple-orange-text: #C93400;
+      --apple-orange-bg: rgba(255, 149, 0, 0.12);
+      --apple-purple: #AF52DE;
+
+      --shadow-card: 0 2px 10px rgba(0, 0, 0, 0.04);
+      --shadow-popover: 0 12px 32px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.04);
+      --seg-thumb-bg: #FFFFFF;
+      --seg-thumb-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.06);
+      --switch-track-off: #E9E9EA;
+      --spring: cubic-bezier(0.22, 1.25, 0.36, 1);
+    }
+
+    body.dark-mode {
+      --bg-canvas: #000000;
+      --bg-card: #1C1C1E;
+      --bg-card-secondary: #242426;
+      --bg-fill: rgba(118, 118, 128, 0.24);
+      --bg-fill-hover: rgba(118, 118, 128, 0.34);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-strong: rgba(255, 255, 255, 0.15);
+      --text-primary: #F5F5F7;
+      --text-secondary: #98989D;
+      --text-tertiary: #636366;
+
+      --apple-blue: #0A84FF;
+      --apple-blue-bg: rgba(10, 132, 255, 0.18);
+      --apple-blue-border: rgba(10, 132, 255, 0.35);
+      --apple-green: #30D158;
+      --apple-green-text: #30D158;
+      --apple-green-bg: rgba(48, 209, 88, 0.16);
+      --apple-green-border: rgba(48, 209, 88, 0.34);
+      --apple-red: #FF453A;
+      --apple-red-text: #FF453A;
+      --apple-red-bg: rgba(255, 69, 58, 0.16);
+      --apple-red-border: rgba(255, 69, 58, 0.34);
+      --apple-orange: #FF9F0A;
+      --apple-orange-text: #FF9F0A;
+      --apple-orange-bg: rgba(255, 159, 10, 0.16);
+      --apple-purple: #BF5AF2;
+
+      --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.36);
+      --shadow-popover: 0 18px 42px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.08);
+      --seg-thumb-bg: #3A3A3C;
+      --seg-thumb-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+      --switch-track-off: #39393D;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      max-width: 100%;
+      overflow-x: hidden;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", sans-serif;
+      background-color: var(--bg-canvas);
+      color: var(--text-primary);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    .sf-mono {
+      font-family: "SF Mono", "JetBrains Mono", ui-monospace, monospace;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ==========================================================================
+       2. APPLE ELEVATED CARDS & OPTIONAL LIQUID GLASS
+       ========================================================================== */
+    .apple-card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 18px;
+      box-shadow: var(--shadow-card);
+      transition: background-color 0.2s ease, border-color 0.2s ease;
+    }
+
+    body.liquid-glass .apple-card {
+      background-color: rgba(255, 255, 255, 0.74);
+      backdrop-filter: blur(18px) saturate(170%);
+      -webkit-backdrop-filter: blur(18px) saturate(170%);
+    }
+
+    body.dark-mode.liquid-glass .apple-card {
+      background-color: rgba(28, 28, 30, 0.74);
+      backdrop-filter: blur(18px) saturate(170%);
+      -webkit-backdrop-filter: blur(18px) saturate(170%);
+    }
+
+    .apple-popover {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      box-shadow: var(--shadow-popover);
+    }
+
+    body.liquid-glass .apple-popover {
+      background-color: rgba(255, 255, 255, 0.84);
+      backdrop-filter: blur(22px) saturate(180%);
+      -webkit-backdrop-filter: blur(22px) saturate(180%);
+    }
+
+    body.dark-mode.liquid-glass .apple-popover {
+      background-color: rgba(28, 28, 30, 0.86);
+      backdrop-filter: blur(22px) saturate(180%);
+      -webkit-backdrop-filter: blur(22px) saturate(180%);
+    }
+
+    .divider-b { border-bottom: 1px solid var(--border-subtle); }
+    .divider-t { border-top: 1px solid var(--border-subtle); }
+    .divider-r { border-right: 1px solid var(--border-subtle); }
+
+    /* ==========================================================================
+       3. APPLE SPOTLIGHT INPUT, SEGMENTED CONTROLS & iOS SWITCHES
+       ========================================================================== */
+    .apple-input {
+      background-color: var(--bg-fill);
+      border: 1px solid transparent;
+      color: var(--text-primary);
+      border-radius: 11px;
+      outline: none;
+      transition: background-color 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+    }
+
+    .apple-input::placeholder {
+      color: var(--text-tertiary);
+    }
+
+    .apple-input:focus {
+      background-color: var(--bg-card);
+      border-color: var(--apple-blue);
+      box-shadow: 0 0 0 3.5px rgba(0, 122, 255, 0.16);
+    }
+
+    /* Apple Pill / Neutral Control Button */
+    .apple-pill-btn {
+      background-color: var(--bg-fill);
+      border: 1px solid transparent;
+      color: var(--text-primary);
+      border-radius: 9999px;
+      font-weight: 500;
+      transition: background-color 0.15s ease, transform 0.15s var(--spring);
+    }
+
+    .apple-pill-btn:hover {
+      background-color: var(--bg-fill-hover);
+    }
+
+    .apple-pill-btn:active {
+      transform: scale(0.97);
+    }
+
+    .apple-rect-btn {
+      background-color: var(--bg-fill);
+      border: 1px solid transparent;
+      color: var(--text-primary);
+      border-radius: 10px;
+      font-weight: 500;
+      transition: background-color 0.15s ease, transform 0.15s var(--spring);
+    }
+
+    .apple-rect-btn:hover {
+      background-color: var(--bg-fill-hover);
+    }
+
+    .apple-rect-btn:active {
+      transform: scale(0.97);
+    }
+
+    /* Authentic Apple Segmented Control */
+    .apple-seg-track {
+      background-color: var(--bg-fill);
+      border-radius: 10px;
+      padding: 2.5px;
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .apple-seg-btn {
+      color: var(--text-secondary);
+      border-radius: 7.5px;
+      font-weight: 500;
+      transition: background-color 0.18s var(--spring), color 0.15s ease, box-shadow 0.18s ease;
+    }
+
+    .apple-seg-btn:hover {
+      color: var(--text-primary);
+    }
+
+    .apple-seg-btn.active {
+      background-color: var(--seg-thumb-bg);
+      color: var(--text-primary);
+      font-weight: 600;
+      box-shadow: var(--seg-thumb-shadow);
+    }
+
+    /* Authentic iOS Spring Toggle Switch */
+    .ios-switch {
+      width: 44px;
+      height: 26px;
+      border-radius: 9999px;
+      padding: 2px;
+      background-color: var(--switch-track-off);
+      display: inline-flex;
+      align-items: center;
+      cursor: pointer;
+      transition: background-color 0.22s ease;
+      flex-shrink: 0;
+    }
+
+    .ios-switch.on {
+      background-color: var(--apple-green);
+    }
+
+    .ios-switch-thumb {
+      width: 22px;
+      height: 22px;
+      border-radius: 9999px;
+      background-color: #FFFFFF;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.22);
+      transition: transform 0.24s var(--spring);
+    }
+
+    .ios-switch.on .ios-switch-thumb {
+      transform: translateX(18px);
+    }
+
+    /* Chart Overlay / Indicator Pill */
+    .apple-chip {
+      background-color: var(--bg-fill);
+      color: var(--text-secondary);
+      border-radius: 8px;
+      font-weight: 500;
+      transition: all 0.15s ease;
+    }
+
+    .apple-chip:hover {
+      background-color: var(--bg-fill-hover);
+      color: var(--text-primary);
+    }
+
+    .apple-chip.active {
+      background-color: var(--apple-blue-bg);
+      color: var(--apple-blue);
+      font-weight: 600;
+    }
+
+    /* Watchlist Ticker Chip */
+    .ticker-chip {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      color: var(--text-primary);
+      transition: all 0.16s var(--spring);
+    }
+
+    .ticker-chip:hover {
+      border-color: var(--border-strong);
+      transform: translateY(-1px);
+    }
+
+    .ticker-chip.active {
+      background-color: var(--apple-blue);
+      border-color: var(--apple-blue);
+      color: #FFFFFF;
+      box-shadow: 0 3px 10px rgba(0, 122, 255, 0.28);
+    }
+
+    /* Price Tick Flash Animations */
+    @keyframes flashGreen {
+      0% { background-color: rgba(52, 199, 89, 0.28); }
+      100% { background-color: transparent; }
+    }
+    @keyframes flashRed {
+      0% { background-color: rgba(255, 59, 48, 0.28); }
+      100% { background-color: transparent; }
+    }
+    .tick-up { animation: flashGreen 0.65s ease-out; border-radius: 6px; }
+    .tick-down { animation: flashRed 0.65s ease-out; border-radius: 6px; }
+
+    /* ==========================================================================
+       4. EXTRA PROFESSIONAL 12-TOOL DRAWING RAIL & TELEMETRY HUD
+       ========================================================================== */
+    .xpro-rail {
+      width: 38px;
+      background-color: var(--bg-card-secondary);
+      border-right: 1px solid var(--border-subtle);
+    }
+
+    .rail-tool {
+      width: 26px;
+      height: 26px;
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-secondary);
+      transition: all 0.14s ease;
+    }
+
+    .rail-tool:hover {
+      background-color: var(--bg-fill);
+      color: var(--text-primary);
+    }
+
+    .rail-tool.active {
+      background-color: var(--apple-blue-bg);
+      color: var(--apple-blue);
+    }
+
+    .chart-hud {
+      background-color: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 9px;
+    }
+
+    body.dark-mode .chart-hud {
+      background-color: rgba(28, 28, 30, 0.88);
+    }
+
+    /* ==========================================================================
+       5. NEWS WIRE ROWS & macOS SEQUOIA FLOATING WINDOWS
+       ========================================================================== */
+    .news-row {
+      border-bottom: 1px solid var(--border-subtle);
+      transition: background-color 0.14s ease;
+    }
+
+    .news-row:last-child {
+      border-bottom: none;
+    }
+
+    .news-row:hover {
+      background-color: var(--bg-card-secondary);
+    }
+
+    .news-sev-red {
+      background-color: rgba(255, 59, 48, 0.08);
+      border-left: 3.5px solid var(--apple-red);
+    }
+
+    .news-sev-red:hover {
+      background-color: rgba(255, 59, 48, 0.13);
+    }
+
+    .news-sev-yellow {
+      border-left: 3.5px solid var(--apple-orange);
+    }
+
+    .news-sev-blue {
+      border-left: 3.5px solid transparent;
+    }
+
+    /* macOS Sequoia Floating Window */
+    .macos-popup-win {
+      position: fixed;
+      width: 430px;
+      max-width: calc(100vw - 24px);
+      max-height: 82vh;
+      display: flex;
+      flex-direction: column;
+      border-radius: 16px;
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-strong);
+      box-shadow: 0 22px 50px -12px rgba(0, 0, 0, 0.24), 0 4px 12px rgba(0, 0, 0, 0.06);
+      animation: macWinSpring 0.22s var(--spring) forwards;
+      user-select: none;
+      overflow: hidden;
+    }
+
+    body.dark-mode .macos-popup-win {
+      box-shadow: 0 26px 60px -12px rgba(0, 0, 0, 0.78), 0 0 0 1px rgba(255, 255, 255, 0.10);
+    }
+
+    @keyframes macWinSpring {
+      from { opacity: 0; transform: scale(0.94) translateY(8px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    /* iOS Dynamic Notification Pill Banner */
+    #appleBanner {
+      position: fixed;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-140%);
+      z-index: 9999;
+      background-color: #1C1C1E;
+      color: #FFFFFF;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 9999px;
+      padding: 8px 16px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
+      opacity: 0;
+      transition: transform 0.34s var(--spring), opacity 0.22s ease;
+      pointer-events: none;
+      max-width: calc(100vw - 24px);
+    }
+
+    #appleBanner.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* Subtle Apple Scrollbars */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(142, 142, 147, 0.28); border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(142, 142, 147, 0.48); }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- iOS Dynamic Notification Pill -->
+  <div id="appleBanner" class="flex items-center gap-3 text-xs">
+    <span id="bannerDot" class="w-2 h-2 rounded-full shrink-0" style="background-color: #30D158"></span>
+    <div class="min-w-0 flex-1">
+      <div id="bannerTitle" class="font-semibold truncate text-[12px]">Live Feed Connected</div>
+      <div id="bannerSub" class="text-[11px] text-neutral-300 truncate">Syncing real-time market quotes & news</div>
+    </div>
+    <button id="bannerActionBtn" class="hidden px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#0A84FF] text-white hover:opacity-90 shrink-0">Fill Code</button>
+  </div>
+
+  <!-- ========================================================================
+       1. TOP BAR (56PX HEIGHT, NO TOP-LEFT BRAND ICON)
+       ======================================================================== -->
+  <header class="w-full divider-b sticky top-0 z-40" style="background-color: var(--bg-card); height: 56px;">
+    <div class="w-full max-w-[1680px] h-full mx-auto px-3 sm:px-5 flex items-center justify-between gap-3 min-w-0">
+
+      <!-- Left: Apple Spotlight Global Search Input -->
+      <div class="relative flex-1 max-w-md min-w-0">
+        <div class="relative flex items-center">
+          <svg class="w-4 h-4 absolute left-3 pointer-events-none" style="color: var(--text-tertiary)" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z" />
+          </svg>
+          <input
+            id="globalSearchInput"
+            type="text"
+            placeholder="Search 126 businesses by ticker, name, or sector..."
+            class="apple-input w-full h-9 pl-9 pr-9 text-[13px]"
+            autocomplete="off"
+          />
+          <kbd class="hidden sm:inline-block absolute right-2.5 px-1.5 py-0.5 text-[10px] font-medium rounded-md" style="background-color: var(--bg-card); color: var(--text-tertiary); border: 1px solid var(--border-subtle)">/</kbd>
+        </div>
+        <div id="searchDropdown" class="hidden apple-popover absolute left-0 right-0 mt-2 p-1.5 max-h-80 overflow-y-auto z-50"></div>
+      </div>
+
+      <!-- Right: Live Status Pill + Credits Pill + Day/Night Toggle + Account + Settings -->
+      <div class="flex items-center gap-2 shrink-0">
+
+        <!-- Real-Time Data Status Pill + Manual Sync -->
+        <button onclick="forceManualLiveSync()" title="Click to force immediate live quote & news sync" class="apple-pill-btn h-8 px-2.5 flex items-center gap-1.5 text-[11px] shrink-0">
+          <span class="relative flex h-2 w-2 shrink-0">
+            <span id="livePulsePing" class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style="background-color: var(--apple-green)"></span>
+            <span id="livePulseDot" class="relative inline-flex rounded-full h-2 w-2" style="background-color: var(--apple-green)"></span>
+          </span>
+          <span class="font-bold tracking-tight" style="color: var(--apple-green-text)">LIVE</span>
+          <span id="liveFeedSourceLabel" class="hidden xl:inline text-[11px]" style="color: var(--text-secondary)">Syncing...</span>
+          <svg id="manualSyncSpinner" class="w-3 h-3 ml-0.5 transition-transform" style="color: var(--text-tertiary)" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+        </button>
+
+        <!-- Credits & Total Equity Pill -->
+        <div class="h-8 px-3 rounded-full flex items-center gap-2 text-xs" style="background-color: var(--bg-fill);">
+          <span id="headerCreditsDisplay" class="sf-mono font-semibold text-[12px]">10,000.00 CR</span>
+          <span class="hidden md:inline" style="color: var(--text-tertiary)">•</span>
+          <span class="hidden md:inline text-[11px]" style="color: var(--text-secondary)">Eq: <strong id="headerEquityDisplay" class="sf-mono font-semibold" style="color: var(--text-primary)">10,000.00</strong></span>
+        </div>
+
+        <!-- Apple Day / Night Segmented Pill Toggle -->
+        <div class="apple-seg-track h-8 rounded-full">
+          <button id="themeDayBtn" onclick="setDarkMode(false)" title="Apple Light Mode" class="apple-seg-btn h-7 px-2.5 rounded-full text-xs flex items-center gap-1 active">
+            <svg class="w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="4" /><path stroke-linecap="round" d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41m11.32-11.32l1.41-1.41" />
+            </svg>
+            <span class="hidden sm:inline text-[11px]">Day</span>
+          </button>
+          <button id="themeNightBtn" onclick="setDarkMode(true)" title="Apple Dark Mode" class="apple-seg-btn h-7 px-2.5 rounded-full text-xs flex items-center gap-1">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+            </svg>
+            <span class="hidden sm:inline text-[11px]">Night</span>
+          </button>
+        </div>
+
+        <!-- Account Pill -->
+        <button onclick="openAuthModal()" class="apple-pill-btn h-8 px-3 text-xs flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full" style="background-color: var(--apple-blue)"></span>
+          <span id="headerUserLabel" class="max-w-[90px] truncate text-[12px]">Account</span>
+        </button>
+
+        <!-- Settings Gear Button -->
+        <div class="relative">
+          <button id="settingsBtn" onclick="toggleSettingsMenu()" title="Settings" class="apple-pill-btn w-8 h-8 flex items-center justify-center">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.9" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+          </button>
+
+          <!-- macOS Sequoia Settings Popover -->
+          <div id="settingsPopover" class="hidden apple-popover absolute right-0 mt-2 w-80 p-4 z-50 flex flex-col gap-3.5 text-xs">
+            <div class="flex items-center justify-between pb-2.5 divider-b">
+              <span class="font-semibold text-[13px]">Preferences</span>
+              <span id="settingsProviderBadge" class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full" style="background-color: var(--apple-blue-bg); color: var(--apple-blue)">Local Wallet</span>
+            </div>
+
+            <!-- Chart Engine Apple Segmented Control -->
+            <div class="flex flex-col gap-1.5">
+              <div class="flex items-center justify-between">
+                <span class="font-medium">Chart Engine</span>
+                <span id="chartModeLabel" class="sf-mono text-[11px]" style="color: var(--text-secondary)">Extra Pro</span>
+              </div>
+              <div class="apple-seg-track w-full grid grid-cols-3">
+                <button id="modeExtraBtn" onclick="setChartMode('extra')" class="apple-seg-btn py-1.5 text-[11px] active">Extra Pro</button>
+                <button id="modeProBtn" onclick="setChartMode('pro')" class="apple-seg-btn py-1.5 text-[11px]">Pro</button>
+                <button id="modeSimpleBtn" onclick="setChartMode('simple')" class="apple-seg-btn py-1.5 text-[11px]">Simple</button>
+              </div>
+            </div>
+
+            <!-- Optional Liquid Glass Toggle (iOS Spring Switch) -->
+            <div class="flex items-center justify-between pt-0.5">
+              <div>
+                <div class="font-medium">Liquid Glass Surfaces</div>
+                <div class="text-[11px]" style="color: var(--text-secondary)">macOS translucent backdrop blur</div>
+              </div>
+              <button id="liquidGlassSwitch" onclick="toggleLiquidGlass()" class="ios-switch" aria-label="Toggle Liquid Glass">
+                <span class="ios-switch-thumb"></span>
+              </button>
+            </div>
+
+            <!-- Optional Direct Finnhub Live API Key -->
+            <div class="flex flex-col gap-1.5 pt-2.5 divider-t">
+              <div class="flex items-center justify-between">
+                <span class="font-medium">Finnhub Live API Key <span style="color: var(--text-tertiary)">(Optional)</span></span>
+                <span id="finnhubKeyStatus" class="text-[10px] font-semibold" style="color: var(--apple-blue)">Yahoo Active</span>
+              </div>
+              <div class="flex gap-1.5">
+                <input id="finnhubApiKeyInput" type="password" placeholder="Paste free Finnhub token..." class="apple-input flex-1 h-8 px-2.5 text-xs" />
+                <button onclick="saveFinnhubKey()" class="px-3 h-8 rounded-lg font-semibold text-[11px] text-white" style="background-color: var(--apple-blue)">Save</button>
+              </div>
+            </div>
+
+            <!-- Account & Reset Wallet -->
+            <div class="pt-2.5 divider-t flex flex-col gap-2">
+              <div class="flex items-center justify-between">
+                <span style="color: var(--text-secondary)">Signed In</span>
+                <span id="settingsUserName" class="font-semibold truncate max-w-[150px]">Demo Trader</span>
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <button onclick="openAuthModal()" class="py-2 px-3 rounded-xl font-semibold text-[11px] text-white transition-opacity hover:opacity-90" style="background-color: var(--apple-blue)">Switch Account</button>
+                <button onclick="resetAccountCredits()" class="apple-rect-btn py-2 px-3 font-medium text-[11px]">Reset 10,000 CR</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================
+       2. APPLE WATCHLIST & SECTOR DISCOVERY BAR (126 BUSINESSES)
+       ======================================================================== -->
+  <div class="w-full divider-b" style="background-color: var(--bg-card);">
+    <div class="w-full max-w-[1680px] mx-auto px-3 sm:px-5 py-2 flex items-center gap-2 min-w-0">
+      <!-- Favorites / All Segmented Control -->
+      <div class="apple-seg-track shrink-0">
+        <button id="filterFavBtn" onclick="setMarketFilter('FAV')" class="apple-seg-btn px-3 py-1 text-xs active">
+          ★ Favorites (<span id="favCountLabel">6</span>)
+        </button>
+        <button id="filterAllBtn" onclick="setMarketFilter('ALL')" class="apple-seg-btn px-3 py-1 text-xs">
+          All (<span id="allBizCountLabel">126</span>)
+        </button>
+      </div>
+
+      <!-- Sector Filter Pill -->
+      <select id="sectorFilterSelect" onchange="setSectorFilter(this.value)" class="apple-rect-btn h-8 px-3 text-xs cursor-pointer shrink-0 max-w-[178px]">
+        <option value="ALL_SECTORS">All Sectors (126)</option>
+      </select>
+
+      <!-- Scroll Left -->
+      <button onclick="scrollTickerBar(-260)" title="Scroll Left" class="apple-pill-btn w-7 h-7 flex items-center justify-center shrink-0 text-xs">‹</button>
+
+      <!-- Horizontally Scrollable Apple Ticker Chips -->
+      <div id="tickerStrip" class="min-w-0 flex-1 overflow-x-auto flex items-center gap-1.5 py-0.5 scroll-smooth"></div>
+
+      <!-- Scroll Right -->
+      <button onclick="scrollTickerBar(260)" title="Scroll Right" class="apple-pill-btn w-7 h-7 flex items-center justify-center shrink-0 text-xs">›</button>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       3. CLEAN 62% / 38% APPLE SPLIT WORKSPACE
+       ======================================================================== -->
+  <main class="w-full max-w-[1680px] mx-auto px-3 sm:px-5 py-3.5 grid grid-cols-1 lg:grid-cols-[minmax(0,62%)_minmax(0,38%)] gap-3.5 flex-1 min-w-0">
+
+    <!-- ======================================================================
+         LEFT PANE (62%): LIVE STOCK CHART & PAPER TRADING
+         ====================================================================== -->
+    <section class="flex flex-col gap-3.5 min-w-0">
+
+      <!-- Elevated Apple Chart Card -->
+      <div class="apple-card flex flex-col min-w-0 overflow-hidden">
+
+        <!-- Stock Header Row -->
+        <div class="px-4 py-3 divider-b flex flex-wrap items-center justify-between gap-3 min-w-0">
+          <div class="flex items-center gap-3 min-w-0 flex-1">
+            <!-- Rounded-Square App-Style Monogram Badge -->
+            <div id="activeStockAvatar" class="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 text-white" style="background: linear-gradient(135deg, #007AFF, #5856D6);">
+              NV
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-1.5">
+                <span id="activeStockSymbol" class="text-[17px] font-bold tracking-tight">NVDA</span>
+                <button id="favoriteStarBtn" onclick="toggleFavorite(state.activeSymbol)" class="text-base leading-none text-amber-500 hover:scale-110 transition-transform" title="Toggle Favorite">★</button>
+                <span id="activeStockName" class="text-xs sm:text-sm font-medium truncate" style="color: var(--text-secondary)">NVIDIA Corporation</span>
+              </div>
+              <div class="flex items-center gap-1.5 text-[11px]" style="color: var(--text-tertiary)">
+                <span id="activeStockSector" class="truncate">AI & Semiconductors</span>
+                <span>•</span>
+                <span id="activeQuoteSourceText" class="truncate">Live Market Feed</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Live Price + Daily Change + Active Timeframe Return Pill -->
+          <div class="flex items-center gap-3 shrink-0 sf-mono">
+            <span id="timeframeReturnPill" class="px-2.5 py-1 rounded-full text-[11px] font-semibold" style="background-color: var(--apple-green-bg); color: var(--apple-green-text);">
+              1D: +0.00%
+            </span>
+            <div id="livePriceFlashBox" class="text-right px-1.5 py-0.5">
+              <div id="activeStockPrice" class="text-lg sm:text-xl font-bold leading-tight">$138.45</div>
+              <div id="activeStockChange" class="text-[11px] font-semibold leading-tight" style="color: var(--apple-green-text)">+$0.00 (+0.00%)</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Unified Chart Toolbar (Working 1m / 15m / 1h / 1D / 1W / 1M / 1Y + Indicators + Replay) -->
+        <div class="px-4 py-2.5 divider-b flex flex-wrap items-center justify-between gap-2 text-xs">
+          <!-- Working 7-Timeframe Apple Segmented Control -->
+          <div class="apple-seg-track">
+            <button onclick="setChartTimeframe('1m')" data-tf="1m" class="apple-seg-btn tf-btn px-2.5 py-1 text-[11px] sf-mono">1m</button>
+            <button onclick="setChartTimeframe('15m')" data-tf="15m" class="apple-seg-btn tf-btn px-2.5 py-1 text-[11px] sf-mono">15m</button>
+            <button onclick="setChartTimeframe('1h')" data-tf="1h" class="apple-seg-btn tf-btn px-2.5 py-1 text-[11px] sf-mono">1h</button>
+            <button onclick="setChartTimeframe('1D')" data-tf="1D" class="apple-seg-btn tf-btn px-2.5 py-1 text-[11px] sf-mono active">1D</button>
+            <button onclick="setChartTimeframe('1W')" data-tf="1W" class="apple-seg-btn tf-btn px-2.5 py-1 text-[11px] sf-mono">1W</button>
+            <button onclick="setChartTimeframe('1M')" data-tf="1M" class="apple-seg-btn tf-btn px-2.5 py-1 text-[11px] sf-mono">1M</button>
+            <button onclick="setChartTimeframe('1Y')" data-tf="1Y" class="apple-seg-btn tf-btn px-2.5 py-1 text-[11px] sf-mono">1Y</button>
+          </div>
+
+          <!-- Indicators & Replay Controls -->
+          <div id="xproToolbarControls" class="flex flex-wrap items-center gap-1.5">
+            <button id="toggleEmaBtn" onclick="toggleXproOverlay('ema')" class="apple-chip px-2.5 py-1 text-[11px] active">EMA</button>
+            <button id="toggleVwapBtn" onclick="toggleXproOverlay('vwap')" class="apple-chip px-2.5 py-1 text-[11px] active">VWAP</button>
+            <button id="toggleBollBtn" onclick="toggleXproOverlay('boll')" class="apple-chip px-2.5 py-1 text-[11px]">BOLL</button>
+            <button id="toggleMacdBtn" onclick="toggleXproOverlay('macd')" class="apple-chip px-2.5 py-1 text-[11px] active">MACD</button>
+
+            <button id="replayModeBtn" onclick="toggleReplayMode()" class="apple-chip px-2.5 py-1 text-[11px] flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full" style="background-color: var(--apple-orange)"></span> REPLAY
+            </button>
+            <div id="replayStepControls" class="hidden apple-seg-track">
+              <button onclick="stepReplay(-1)" class="apple-seg-btn px-2 py-0.5 text-[11px]" title="Step Back">⏮</button>
+              <button id="replayPlayPauseBtn" onclick="toggleReplayAutoPlay()" class="apple-seg-btn px-2 py-0.5 text-[11px] font-bold" style="color: var(--apple-green-text)" title="Play / Pause">▶</button>
+              <button onclick="stepReplay(1)" class="apple-seg-btn px-2 py-0.5 text-[11px]" title="Step Forward">⏭</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- EXTRA PROFESSIONAL QUANT TERMINAL (Default, Zero Background Watermark) -->
+        <div id="xproTerminalContainer" class="flex relative min-w-0" style="height: 396px;">
+          <!-- Left 38px 12-Tool Drawing Sidebar -->
+          <div class="xpro-rail shrink-0 py-1.5 flex flex-col items-center justify-between z-10">
+            <button onclick="selectDrawTool('crosshair')" data-tool="crosshair" title="1. Crosshair" class="rail-tool active">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 2v20M2 12h20"/></svg>
+            </button>
+            <button onclick="selectDrawTool('trendline')" data-tool="trendline" title="2. Trendline" class="rail-tool">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M4 20L20 4"/><circle cx="4" cy="20" r="2"/><circle cx="20" cy="4" r="2"/></svg>
+            </button>
+            <button onclick="selectDrawTool('hline')" data-tool="hline" title="3. Horizontal Line" class="rail-tool">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M3 12h18"/><circle cx="12" cy="12" r="2"/></svg>
+            </button>
+            <button onclick="selectDrawTool('fib')" data-tool="fib" title="4. Fib Retracement" class="rail-tool">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M3 5h18M3 10h18M3 15h18M3 20h18"/></svg>
+            </button>
+            <button onclick="selectDrawTool('brush')" data-tool="brush" title="5. Freehand Brush" class="rail-tool">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M4 17c3-6 6 2 9-4s4-4 7-6"/></svg>
+            </button>
+            <button onclick="selectDrawTool('text')" data-tool="text" title="6. Text Callout Note" class="rail-tool font-bold text-[11px]">
+              T
+            </button>
+            <button onclick="selectDrawTool('marker')" data-tool="marker" title="7. Signal Marker" class="rail-tool">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 2l3 7h7l-5.5 4.2L18.5 21 12 16.8 5.5 21l2-7.8L2 9h7z"/></svg>
+            </button>
+            <button onclick="selectDrawTool('ruler')" data-tool="ruler" title="8. Price / % Ruler" class="rail-tool">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="10" rx="2"/><path d="M7 7v4m5-4v6m5-6v4"/></svg>
+            </button>
+            <button id="toolZoomBtn" onclick="toggleChartZoom()" title="9. Zoom In / Reset (1.6x)" class="rail-tool">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35M11 8v6M8 11h6"/></svg>
+            </button>
+            <button id="toolMagnetBtn" onclick="toggleMagnetSnap()" title="10. OHLC Magnet Snap" class="rail-tool">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M6 3v7a6 6 0 0012 0V3M6 7h4M14 7h4"/></svg>
+            </button>
+            <button id="toolLockBtn" onclick="toggleDrawingsLock()" title="11. Lock Drawings" class="rail-tool">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>
+            </button>
+            <button onclick="clearAllDrawings()" title="12. Clear All Drawings" class="rail-tool">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2m-9 0l1 14h8l1-14"/></svg>
+            </button>
+          </div>
+
+          <!-- Chart Canvas + Top-Left Telemetry HUD -->
+          <div class="relative flex-1 min-w-0">
+            <div class="chart-hud absolute top-2.5 left-2.5 z-10 pointer-events-none px-2.5 py-1 sf-mono text-[11px] flex flex-wrap items-center gap-x-2.5 gap-y-0.5 max-w-[calc(100%-76px)]">
+              <span class="font-bold" style="color: var(--apple-blue)" id="hudTfTag">1D</span>
+              <span><span style="color: var(--text-tertiary)">O</span> <strong id="hudO">138.10</strong></span>
+              <span><span style="color: var(--text-tertiary)">H</span> <strong id="hudH" style="color: var(--apple-green-text)">139.20</strong></span>
+              <span><span style="color: var(--text-tertiary)">L</span> <strong id="hudL" style="color: var(--apple-red-text)">137.85</strong></span>
+              <span><span style="color: var(--text-tertiary)">C</span> <strong id="hudC">138.45</strong></span>
+              <span><span style="color: var(--text-tertiary)">V</span> <strong id="hudV">1.4K</strong></span>
+              <span style="color: var(--apple-blue)">EMA9 <strong id="hudEma9">138.22</strong></span>
+              <span style="color: var(--apple-orange-text)">EMA20 <strong id="hudEma20">137.94</strong></span>
+              <span style="color: var(--apple-purple)">VWAP <strong id="hudVwap">138.15</strong></span>
+              <span style="color: var(--text-secondary)">MACD <strong id="hudMacd">0.14</strong></span>
+            </div>
+
+            <!-- Inline Apple Text Annotation Input (No prompt() used!) -->
+            <div id="inlineTextNoteBox" class="hidden absolute z-20 apple-popover p-1.5 flex items-center gap-1.5">
+              <input id="inlineTextNoteInput" type="text" maxlength="32" placeholder="Chart note..." class="apple-input h-7 px-2 text-xs w-40" />
+              <button onclick="commitInlineTextNote()" class="px-2.5 h-7 rounded-lg text-[11px] font-semibold text-white" style="background-color: var(--apple-blue)">Add</button>
+              <button onclick="cancelInlineTextNote()" class="apple-rect-btn px-2 h-7 text-[11px]">✕</button>
+            </div>
+
+            <canvas id="xproChartCanvas" class="w-full h-full block cursor-crosshair"></canvas>
+          </div>
+        </div>
+
+        <!-- PRO & SIMPLE CHART MODES (Selectable via Settings) -->
+        <div id="standardChartCard" class="hidden p-3.5 flex flex-col gap-2.5 min-w-0">
+          <div class="relative w-full h-[300px]">
+            <canvas id="standardChartCanvas" class="w-full h-full block"></canvas>
+          </div>
+          <div id="proDepthStrip" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2.5 divider-t text-xs">
+            <div class="pr-2">
+              <div class="flex justify-between font-semibold text-[11px] mb-1" style="color: var(--text-secondary)">
+                <span>LEVEL-2 ORDER BOOK</span>
+                <span class="sf-mono" style="color: var(--apple-green-text)">SPREAD 0.02</span>
+              </div>
+              <div id="orderBookRows" class="sf-mono text-[11px] flex flex-col gap-1"></div>
+            </div>
+            <div>
+              <div class="font-semibold text-[11px] mb-1" style="color: var(--text-secondary)">KEY FINANCIALS</div>
+              <div id="proFundamentalsGrid" class="grid grid-cols-2 gap-1 sf-mono text-[11px]"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ====================================================================
+           PAPER TRADING ORDER TICKET & PORTFOLIO TABS
+           ==================================================================== -->
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-3.5 min-w-0">
+
+        <!-- Order Ticket Card (5 Cols) -->
+        <div class="apple-card p-4 md:col-span-5 flex flex-col gap-3 min-w-0">
+          <div class="flex items-center justify-between gap-2">
+            <div class="apple-seg-track flex-1 grid grid-cols-2">
+              <button id="sideBuyBtn" onclick="setOrderSide('BUY')" class="apple-seg-btn py-1.5 text-xs active" style="color: var(--apple-green-text)">Buy</button>
+              <button id="sideSellBtn" onclick="setOrderSide('SELL')" class="apple-seg-btn py-1.5 text-xs">Sell</button>
+            </div>
+            <div class="apple-seg-track shrink-0">
+              <button id="orderTypeMarketBtn" onclick="setOrderType('MARKET')" class="apple-seg-btn px-2.5 py-1.5 text-[11px] active">Market</button>
+              <button id="orderTypeLimitBtn" onclick="setOrderType('LIMIT')" class="apple-seg-btn px-2.5 py-1.5 text-[11px]">Limit</button>
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-2.5 text-xs">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-1.5">
+                <button id="unitSharesBtn" onclick="setOrderUnit('SHARES')" class="text-[11px] font-semibold" style="color: var(--apple-blue)">Shares</button>
+                <span style="color: var(--text-tertiary)">/</span>
+                <button id="unitCreditsBtn" onclick="setOrderUnit('CREDITS')" class="text-[11px] font-medium" style="color: var(--text-tertiary)">Credits</button>
+              </div>
+              <div class="flex items-center gap-1">
+                <button onclick="setQuickAllocation(0.25)" class="apple-pill-btn px-2 py-0.5 text-[10px]">25%</button>
+                <button onclick="setQuickAllocation(0.50)" class="apple-pill-btn px-2 py-0.5 text-[10px]">50%</button>
+                <button onclick="setQuickAllocation(1.0)" class="apple-pill-btn px-2 py-0.5 text-[10px]">Max</button>
+              </div>
+            </div>
+
+            <input id="orderQtyInput" type="number" min="0.01" step="1" value="5" oninput="updateOrderEstimate()" class="apple-input w-full h-9 px-3 sf-mono font-semibold text-xs" />
+
+            <div id="limitPriceFieldWrap" class="hidden">
+              <label class="block text-[11px] mb-1" style="color: var(--text-secondary)">Limit Price (CR)</label>
+              <input id="limitPriceInput" type="number" step="0.01" oninput="updateOrderEstimate()" class="apple-input w-full h-9 px-3 sf-mono font-semibold text-xs" />
+            </div>
+
+            <div class="pt-2 divider-t flex items-center justify-between sf-mono text-[11px]">
+              <span style="color: var(--text-secondary)">Estimated Total</span>
+              <span id="orderEstTotal" class="font-semibold">692.25 CR</span>
+            </div>
+
+            <button id="submitOrderBtn" onclick="executeOrder()" class="w-full h-9 rounded-xl font-semibold text-[13px] text-white transition-all hover:opacity-95 active:scale-[0.99]" style="background-color: var(--apple-green)">
+              Buy NVDA
+            </button>
+          </div>
+        </div>
+
+        <!-- Portfolio Tabs Card: Positions | Open Orders | Trade History (7 Cols) -->
+        <div class="apple-card p-4 md:col-span-7 flex flex-col gap-2.5 min-w-0">
+          <div class="flex flex-wrap items-center justify-between pb-2.5 divider-b gap-2">
+            <div class="apple-seg-track">
+              <button onclick="setBottomTab('positions')" data-btab="positions" class="apple-seg-btn btab-btn px-3 py-1 text-[11px] active">Positions</button>
+              <button onclick="setBottomTab('orders')" data-btab="orders" class="apple-seg-btn btab-btn px-3 py-1 text-[11px]">Open Orders</button>
+              <button onclick="setBottomTab('history')" data-btab="history" class="apple-seg-btn btab-btn px-3 py-1 text-[11px]">Trade History</button>
+            </div>
+            <div class="sf-mono text-[11px] text-right shrink-0">
+              <span style="color: var(--text-secondary)">Unrealized P&L:</span>
+              <strong id="totalPnlBadge" style="color: var(--apple-green-text)">+0.00 CR</strong>
+            </div>
+          </div>
+
+          <div id="bottomTabContent" class="flex-1 overflow-y-auto max-h-[195px] text-xs min-w-0"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         RIGHT PANE (38%): REAL-TIME LIVE CONTEXTUAL NEWS WIRE
+         ====================================================================== -->
+    <aside class="apple-card flex flex-col min-w-0 lg:max-h-[calc(100vh-128px)] lg:sticky lg:top-[70px] overflow-hidden">
+      <!-- Wire Header -->
+      <div class="px-4 py-3 divider-b flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2 min-w-0">
+          <span class="w-2 h-2 rounded-full shrink-0" style="background-color: var(--apple-red)"></span>
+          <h2 id="newsHeaderTitle" class="font-bold text-[15px] tracking-tight truncate">NVDA Live Wire</h2>
+        </div>
+        <button onclick="fetchRealLiveNews(state.activeSymbol, true)" class="apple-chip px-2.5 py-1 text-[11px] shrink-0 flex items-center gap-1">
+          <span>↻ Refresh Live</span>
+        </button>
+      </div>
+
+      <!-- Scope & Severity Filter Controls -->
+      <div class="px-4 py-2.5 divider-b flex flex-col gap-2" style="background-color: var(--bg-card-secondary)">
+        <div class="flex items-center justify-between gap-2">
+          <div class="apple-seg-track">
+            <button id="newsScopeTickerBtn" onclick="setNewsScope('TICKER')" class="apple-seg-btn px-2.5 py-0.5 text-[11px] active">Active Stock</button>
+            <button id="newsScopeAllBtn" onclick="setNewsScope('ALL')" class="apple-seg-btn px-2.5 py-0.5 text-[11px]">All 126 Wire</button>
+          </div>
+          <span id="newsFeedStatusTag" class="sf-mono text-[10px] truncate" style="color: var(--text-tertiary)">Live + 2026/06/01–11/22</span>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-between gap-2 text-[11px] font-medium">
+          <label class="flex items-center gap-1.5 cursor-pointer select-none">
+            <input type="checkbox" id="chkSevRed" checked onchange="toggleSeverityFilter('red')" class="accent-[#FF3B30] w-3.5 h-3.5 rounded" />
+            <span class="w-2 h-2 rounded-full" style="background-color: var(--apple-red)"></span>
+            <span>Critical</span>
+          </label>
+          <label class="flex items-center gap-1.5 cursor-pointer select-none">
+            <input type="checkbox" id="chkSevYellow" checked onchange="toggleSeverityFilter('yellow')" class="accent-[#FF9500] w-3.5 h-3.5 rounded" />
+            <span class="w-2 h-2 rounded-full" style="background-color: var(--apple-orange)"></span>
+            <span>Mid</span>
+          </label>
+          <label class="flex items-center gap-1.5 cursor-pointer select-none">
+            <input type="checkbox" id="chkSevBlue" checked onchange="toggleSeverityFilter('blue')" class="accent-[#007AFF] w-3.5 h-3.5 rounded" />
+            <span class="w-2 h-2 rounded-full" style="background-color: var(--apple-blue)"></span>
+            <span>Normal</span>
+          </label>
+          <span id="openWindowsCountBadge" class="sf-mono text-[10px]" style="color: var(--text-tertiary)">Windows: 0/4</span>
+        </div>
+      </div>
+
+      <!-- Scrollable News Feed -->
+      <div id="newsListContainer" class="flex-1 overflow-y-auto flex flex-col min-w-0"></div>
+    </aside>
+  </main>
+
+  <!-- Floating Draggable & Zoomable macOS News Windows Layer -->
+  <div id="floatingWindowsLayer"></div>
+
+  <!-- ========================================================================
+       APPLE ID / MULTI-PROVIDER ACCOUNT & OTP VERIFICATION MODAL
+       ======================================================================== -->
+  <div id="authModal" class="hidden fixed inset-0 z-[9000] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="apple-popover w-full max-w-md p-5 flex flex-col gap-4">
+      <div class="flex items-center justify-between pb-3 divider-b">
+        <div>
+          <h3 class="text-[15px] font-bold">Account & Paper Wallet</h3>
+          <p class="text-xs" style="color: var(--text-secondary)">New accounts start with 10,000.00 CR</p>
+        </div>
+        <button onclick="closeAuthModal()" class="apple-pill-btn w-7 h-7 flex items-center justify-center text-xs">✕</button>
+      </div>
+
+      <!-- Phone / Email OTP Verification -->
+      <div class="flex flex-col gap-2">
+        <label class="text-xs font-semibold">Phone / Email Verification</label>
+        <div class="flex gap-2">
+          <input id="authContactInput" type="text" placeholder="+1 (555) 234-5678 or name@icloud.com" class="apple-input flex-1 h-9 px-3 text-xs" />
+          <button onclick="sendOtpCode()" class="px-3.5 h-9 rounded-xl font-semibold text-xs text-white shrink-0" style="background-color: var(--apple-blue)">Send Code</button>
+        </div>
+        <div id="otpVerifyRow" class="hidden flex gap-2 pt-1">
+          <input id="authOtpInput" type="text" maxlength="6" placeholder="6-digit code" class="apple-input flex-1 h-9 px-3 text-xs sf-mono tracking-widest" />
+          <button onclick="verifyOtpAndLogin()" class="px-3.5 h-9 rounded-xl font-semibold text-xs text-white" style="background-color: var(--apple-green)">Verify</button>
+        </div>
+      </div>
+
+      <!-- OAuth Instant Providers -->
+      <div class="grid grid-cols-3 gap-2 text-xs font-medium pt-2 divider-t">
+        <button onclick="oauthSignIn('Google')" class="apple-rect-btn h-9 px-2 flex items-center justify-center gap-1.5">
+          <span class="font-bold text-red-500">G</span> Google
+        </button>
+        <button onclick="oauthSignIn('GitHub')" class="apple-rect-btn h-9 px-2 flex items-center justify-center gap-1.5">
+          <span>⌘</span> GitHub
+        </button>
+        <button onclick="oauthSignIn('Facebook')" class="apple-rect-btn h-9 px-2 flex items-center justify-center gap-1.5">
+          <span class="font-bold text-blue-600">f</span> Facebook
+        </button>
+      </div>
+
+      <!-- Saved Wallets -->
+      <div class="flex flex-col gap-1.5 pt-2 divider-t">
+        <span class="text-[11px] font-semibold uppercase tracking-wider" style="color: var(--text-tertiary)">Saved Wallets</span>
+        <div id="savedAccountsList" class="flex flex-col gap-1.5 max-h-36 overflow-y-auto"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       APPLICATION SCRIPT:
+       - 126 GLOBAL BUSINESSES ACROSS 12 SECTORS
+       - REAL LIVE MARKET ENGINE (YAHOO FINANCE + FINNHUB + FALLBACK)
+       - REAL LIVE NEWS ENGINE (GDELT 2.0 + GOOGLE NEWS RSS + 2026/06/01-11/22 ARCHIVE)
+       - EXTRA PROFESSIONAL QUANT CHART ENGINE (NO BACKGROUND WATERMARK)
+       ======================================================================== -->
+  <script>
+    /* ==========================================================================
+       1. ALL 126 GLOBAL BUSINESSES ACROSS 12 SECTORS (ONLY ORIGINAL 6 FAVORITED)
+       ========================================================================== */
+    const INITIAL_FAVORITES = ["NVDA", "AAPL", "TSLA", "MSFT", "AMZN", "META"];
+
+    const RAW_COMPANY_LIST = [
+      // Original 6 (Favorited by default)
+      ["NVDA", "NVIDIA Corporation", "AI & Semiconductors", 138.45, "3.39T", "54.8x", "64.2M"],
+      ["AAPL", "Apple Inc.", "AI & Semiconductors", 229.80, "3.48T", "34.2x", "41.8M"],
+      ["TSLA", "Tesla, Inc.", "EV & Autonomous Mobility", 254.60, "812B", "68.5x", "88.5M"],
+      ["MSFT", "Microsoft Corporation", "Cloud & Enterprise AI", 428.90, "3.19T", "35.9x", "22.4M"],
+      ["AMZN", "Amazon.com, Inc.", "Retail & Consumer", 196.30, "2.06T", "43.1x", "39.1M"],
+      ["META", "Meta Platforms, Inc.", "Media & Telecom", 584.20, "1.48T", "28.4x", "16.7M"],
+
+      // AI & Semiconductors (+11 = 17)
+      ["AMD", "Advanced Micro Devices", "AI & Semiconductors", 152.15, "246B", "44.6x", "49.3M"],
+      ["AVGO", "Broadcom Inc.", "AI & Semiconductors", 178.90, "835B", "41.2x", "28.4M"],
+      ["INTC", "Intel Corporation", "AI & Semiconductors", 23.45, "100B", "N/A", "58.4M"],
+      ["QCOM", "QUALCOMM Incorporated", "AI & Semiconductors", 169.80, "189B", "19.4x", "7.6M"],
+      ["ARM", "Arm Holdings plc", "AI & Semiconductors", 146.30, "153B", "92.0x", "8.4M"],
+      ["TSM", "Taiwan Semiconductor", "AI & Semiconductors", 192.40, "998B", "29.1x", "15.2M"],
+      ["ASML", "ASML Holding N.V.", "AI & Semiconductors", 748.90, "295B", "36.8x", "1.5M"],
+      ["MU", "Micron Technology, Inc.", "AI & Semiconductors", 108.40, "120B", "22.1x", "24.8M"],
+      ["SMCI", "Super Micro Computer", "AI & Semiconductors", 44.80, "26B", "19.5x", "52.3M"],
+      ["TXN", "Texas Instruments Inc.", "AI & Semiconductors", 204.60, "186B", "38.2x", "4.8M"],
+      ["AMAT", "Applied Materials, Inc.", "AI & Semiconductors", 184.20, "152B", "21.4x", "5.6M"],
+
+      // Cloud & Enterprise AI (+11 = 28)
+      ["GOOGL", "Alphabet Inc.", "Cloud & Enterprise AI", 176.40, "2.18T", "24.1x", "26.1M"],
+      ["ORCL", "Oracle Corporation", "Cloud & Enterprise AI", 174.80, "484B", "39.1x", "9.7M"],
+      ["CRM", "Salesforce, Inc.", "Cloud & Enterprise AI", 294.60, "282B", "46.2x", "5.9M"],
+      ["NOW", "ServiceNow, Inc.", "Cloud & Enterprise AI", 942.50, "194B", "69.2x", "1.4M"],
+      ["SNOW", "Snowflake Inc.", "Cloud & Enterprise AI", 124.90, "41B", "N/A", "6.2M"],
+      ["PLTR", "Palantir Technologies Inc.", "Cloud & Enterprise AI", 46.85, "105B", "112.0x", "72.4M"],
+      ["DDOG", "Datadog, Inc.", "Cloud & Enterprise AI", 128.75, "43B", "78.4x", "4.1M"],
+      ["MDB", "MongoDB, Inc.", "Cloud & Enterprise AI", 278.60, "20B", "N/A", "1.9M"],
+      ["ADBE", "Adobe Inc.", "Cloud & Enterprise AI", 512.30, "226B", "38.4x", "3.4M"],
+      ["INTU", "Intuit Inc.", "Cloud & Enterprise AI", 638.40, "178B", "49.1x", "1.8M"],
+      ["U", "Unity Software Inc.", "Cloud & Enterprise AI", 21.40, "8.5B", "N/A", "11.2M"],
+
+      // Cybersecurity (+7 = 35)
+      ["PANW", "Palo Alto Networks", "Cybersecurity", 374.20, "121B", "49.8x", "2.7M"],
+      ["CRWD", "CrowdStrike Holdings", "Cybersecurity", 318.70, "78B", "74.5x", "3.9M"],
+      ["ZS", "Zscaler, Inc.", "Cybersecurity", 196.40, "30B", "68.2x", "2.2M"],
+      ["NET", "Cloudflare, Inc.", "Cybersecurity", 92.40, "31B", "N/A", "4.1M"],
+      ["FTNT", "Fortinet, Inc.", "Cybersecurity", 84.60, "65B", "42.3x", "5.4M"],
+      ["OKTA", "Okta, Inc.", "Cybersecurity", 78.90, "13B", "N/A", "3.1M"],
+      ["S", "SentinelOne, Inc.", "Cybersecurity", 25.40, "8.1B", "N/A", "6.8M"],
+
+      // Fintech & Crypto (+9 = 44)
+      ["SHOP", "Shopify Inc.", "Fintech & Crypto", 86.75, "112B", "68.2x", "8.9M"],
+      ["SQ", "Block, Inc.", "Fintech & Crypto", 74.20, "46B", "31.5x", "7.8M"],
+      ["PYPL", "PayPal Holdings, Inc.", "Fintech & Crypto", 81.60, "83B", "18.7x", "11.4M"],
+      ["COIN", "Coinbase Global, Inc.", "Fintech & Crypto", 218.60, "54B", "33.8x", "14.1M"],
+      ["HOOD", "Robinhood Markets, Inc.", "Fintech & Crypto", 26.40, "23B", "41.0x", "28.6M"],
+      ["SOFI", "SoFi Technologies, Inc.", "Fintech & Crypto", 11.25, "12B", "48.2x", "46.9M"],
+      ["AFRM", "Affirm Holdings, Inc.", "Fintech & Crypto", 44.90, "14B", "N/A", "9.4M"],
+      ["NU", "Nu Holdings Ltd.", "Fintech & Crypto", 14.85, "71B", "39.4x", "32.1M"],
+      ["MSTR", "MicroStrategy Incorporated", "Fintech & Crypto", 242.50, "49B", "N/A", "19.8M"],
+
+      // Finance & Banking (+11 = 55)
+      ["V", "Visa Inc.", "Finance & Banking", 289.10, "574B", "29.6x", "6.1M"],
+      ["MA", "Mastercard Incorporated", "Finance & Banking", 504.80, "465B", "35.4x", "2.7M"],
+      ["JPM", "JPMorgan Chase & Co.", "Finance & Banking", 224.30, "638B", "12.4x", "9.4M"],
+      ["BAC", "Bank of America Corp.", "Finance & Banking", 42.15, "325B", "13.1x", "34.5M"],
+      ["GS", "The Goldman Sachs Group", "Finance & Banking", 518.40, "164B", "15.8x", "2.3M"],
+      ["MS", "Morgan Stanley", "Finance & Banking", 116.90, "189B", "16.4x", "7.1M"],
+      ["WFC", "Wells Fargo & Company", "Finance & Banking", 64.80, "218B", "12.9x", "15.8M"],
+      ["BLK", "BlackRock, Inc.", "Finance & Banking", 985.20, "146B", "22.7x", "0.6M"],
+      ["BRK.B", "Berkshire Hathaway Inc.", "Finance & Banking", 456.70, "982B", "14.9x", "3.8M"],
+      ["C", "Citigroup Inc.", "Finance & Banking", 66.40, "126B", "11.8x", "13.2M"],
+      ["AXP", "American Express Company", "Finance & Banking", 274.80, "194B", "20.4x", "2.5M"],
+
+      // Healthcare & Pharma (+10 = 65)
+      ["UNH", "UnitedHealth Group Inc.", "Healthcare & Pharma", 568.30, "523B", "21.2x", "3.1M"],
+      ["LLY", "Eli Lilly and Company", "Healthcare & Pharma", 884.50, "840B", "82.4x", "3.4M"],
+      ["JNJ", "Johnson & Johnson", "Healthcare & Pharma", 158.20, "381B", "15.4x", "6.8M"],
+      ["PFE", "Pfizer Inc.", "Healthcare & Pharma", 28.45, "161B", "14.8x", "29.4M"],
+      ["MRNA", "Moderna, Inc.", "Healthcare & Pharma", 54.30, "21B", "N/A", "12.4M"],
+      ["ABBV", "AbbVie Inc.", "Healthcare & Pharma", 194.80, "344B", "20.5x", "4.7M"],
+      ["TMO", "Thermo Fisher Scientific", "Healthcare & Pharma", 562.10, "215B", "31.2x", "1.6M"],
+      ["ISRG", "Intuitive Surgical, Inc.", "Healthcare & Pharma", 514.90, "183B", "74.8x", "1.9M"],
+      ["NVO", "Novo Nordisk A/S", "Healthcare & Pharma", 118.40, "528B", "36.1x", "5.9M"],
+      ["AZN", "AstraZeneca PLC", "Healthcare & Pharma", 71.80, "222B", "24.8x", "4.6M"],
+
+      // Retail & Consumer (+14 = 79)
+      ["KOSS", "Koss Corporation", "Retail & Consumer", 5.30, "49M", "N/A", "2.1M"],
+      ["WMT", "Walmart Inc.", "Retail & Consumer", 83.40, "671B", "34.5x", "14.2M"],
+      ["COST", "Costco Wholesale Corp.", "Retail & Consumer", 912.40, "404B", "54.2x", "1.9M"],
+      ["TGT", "Target Corporation", "Retail & Consumer", 151.30, "70B", "16.1x", "3.9M"],
+      ["HD", "The Home Depot, Inc.", "Retail & Consumer", 398.60, "395B", "26.4x", "3.2M"],
+      ["LOW", "Lowe's Companies, Inc.", "Retail & Consumer", 268.40, "152B", "21.8x", "2.3M"],
+      ["NKE", "NIKE, Inc.", "Retail & Consumer", 81.15, "121B", "22.9x", "10.8M"],
+      ["SBUX", "Starbucks Corporation", "Retail & Consumer", 96.80, "109B", "27.3x", "7.4M"],
+      ["MCD", "McDonald's Corporation", "Retail & Consumer", 296.40, "212B", "25.1x", "2.8M"],
+      ["KO", "The Coca-Cola Company", "Retail & Consumer", 66.80, "288B", "24.6x", "11.5M"],
+      ["PEP", "PepsiCo, Inc.", "Retail & Consumer", 168.90, "232B", "23.8x", "4.9M"],
+      ["PG", "Procter & Gamble Co.", "Retail & Consumer", 169.40, "399B", "27.1x", "5.6M"],
+      ["LULU", "Lululemon Athletica Inc.", "Retail & Consumer", 312.80, "39B", "23.6x", "2.4M"],
+      ["GME", "GameStop Corp.", "Retail & Consumer", 26.85, "12B", "N/A", "18.4M"],
+
+      // Media & Telecom (+10 = 89)
+      ["DIS", "The Walt Disney Company", "Media & Telecom", 98.75, "179B", "20.8x", "11.3M"],
+      ["NFLX", "Netflix, Inc.", "Media & Telecom", 762.50, "327B", "42.8x", "4.8M"],
+      ["SPOT", "Spotify Technology S.A.", "Media & Telecom", 389.40, "78B", "64.0x", "2.1M"],
+      ["CMCSA", "Comcast Corporation", "Media & Telecom", 42.30, "163B", "10.9x", "16.4M"],
+      ["T", "AT&T Inc.", "Media & Telecom", 22.15, "159B", "12.4x", "31.2M"],
+      ["VZ", "Verizon Communications", "Media & Telecom", 41.80, "176B", "9.8x", "18.5M"],
+      ["TMUS", "T-Mobile US, Inc.", "Media & Telecom", 226.40, "264B", "25.4x", "4.1M"],
+      ["RBLX", "Roblox Corporation", "Media & Telecom", 51.80, "33B", "N/A", "8.7M"],
+      ["EA", "Electronic Arts Inc.", "Media & Telecom", 154.60, "41B", "24.9x", "2.1M"],
+      ["TTWO", "Take-Two Interactive", "Media & Telecom", 172.40, "30B", "N/A", "1.9M"],
+
+      // Aerospace & Industrial (+10 = 99)
+      ["BA", "The Boeing Company", "Aerospace & Industrial", 156.20, "116B", "N/A", "12.9M"],
+      ["LMT", "Lockheed Martin Corp.", "Aerospace & Industrial", 548.90, "131B", "19.8x", "1.3M"],
+      ["RTX", "RTX Corporation", "Aerospace & Industrial", 122.40, "163B", "23.1x", "5.4M"],
+      ["GE", "GE Aerospace", "Aerospace & Industrial", 184.70, "200B", "34.2x", "5.1M"],
+      ["CAT", "Caterpillar Inc.", "Aerospace & Industrial", 388.40, "189B", "17.8x", "2.4M"],
+      ["DE", "Deere & Company", "Aerospace & Industrial", 412.60, "113B", "15.9x", "1.5M"],
+      ["HON", "Honeywell International", "Aerospace & Industrial", 214.50, "139B", "22.6x", "2.9M"],
+      ["UPS", "United Parcel Service", "Aerospace & Industrial", 134.80, "115B", "18.9x", "3.7M"],
+      ["FDX", "FedEx Corporation", "Aerospace & Industrial", 278.40, "68B", "15.6x", "1.8M"],
+      ["NOC", "Northrop Grumman Corp.", "Aerospace & Industrial", 498.20, "73B", "19.4x", "0.9M"],
+
+      // EV & Autonomous Mobility (+8 = 107)
+      ["UBER", "Uber Technologies, Inc.", "EV & Autonomous Mobility", 78.90, "165B", "36.7x", "18.6M"],
+      ["RIVN", "Rivian Automotive, Inc.", "EV & Autonomous Mobility", 10.65, "11B", "N/A", "29.6M"],
+      ["LCID", "Lucid Group, Inc.", "EV & Autonomous Mobility", 2.45, "6B", "N/A", "44.1M"],
+      ["F", "Ford Motor Company", "EV & Autonomous Mobility", 11.15, "44B", "10.4x", "48.2M"],
+      ["GM", "General Motors Company", "EV & Autonomous Mobility", 53.40, "60B", "6.2x", "12.9M"],
+      ["TM", "Toyota Motor Corporation", "EV & Autonomous Mobility", 178.50, "238B", "9.6x", "2.2M"],
+      ["BYDDY", "BYD Company Limited", "EV & Autonomous Mobility", 73.60, "107B", "21.4x", "3.2M"],
+      ["NIO", "NIO Inc.", "EV & Autonomous Mobility", 5.20, "11B", "N/A", "51.8M"],
+
+      // Energy & Clean Power (+8 = 115)
+      ["XOM", "Exxon Mobil Corporation", "Energy & Clean Power", 119.50, "528B", "14.1x", "13.8M"],
+      ["CVX", "Chevron Corporation", "Energy & Clean Power", 154.20, "281B", "14.9x", "7.9M"],
+      ["SHEL", "Shell plc", "Energy & Clean Power", 67.20, "211B", "10.8x", "4.5M"],
+      ["NEE", "NextEra Energy, Inc.", "Energy & Clean Power", 79.30, "163B", "22.5x", "9.6M"],
+      ["ENPH", "Enphase Energy, Inc.", "Energy & Clean Power", 76.40, "10B", "44.2x", "5.8M"],
+      ["FSLR", "First Solar, Inc.", "Energy & Clean Power", 198.20, "21B", "16.8x", "2.4M"],
+      ["SLB", "SLB (Schlumberger)", "Energy & Clean Power", 44.10, "62B", "13.4x", "9.8M"],
+      ["OXY", "Occidental Petroleum", "Energy & Clean Power", 51.80, "48B", "12.9x", "8.6M"],
+
+      // International ADRs (+11 = 126)
+      ["BABA", "Alibaba Group Holding", "International ADRs", 98.40, "238B", "16.8x", "16.4M"],
+      ["TCEHY", "Tencent Holdings Ltd.", "International ADRs", 53.80, "498B", "19.6x", "3.4M"],
+      ["JD", "JD.com, Inc.", "International ADRs", 38.90, "56B", "12.4x", "14.7M"],
+      ["PDD", "PDD Holdings Inc.", "International ADRs", 118.60, "164B", "11.2x", "11.9M"],
+      ["SONY", "Sony Group Corporation", "International ADRs", 94.60, "116B", "17.5x", "2.2M"],
+      ["SAP", "SAP SE", "International ADRs", 238.40, "278B", "46.8x", "1.4M"],
+      ["HSBC", "HSBC Holdings plc", "International ADRs", 46.90, "172B", "9.4x", "2.9M"],
+      ["RY", "Royal Bank of Canada", "International ADRs", 124.60, "176B", "14.2x", "1.8M"],
+      ["TD", "Toronto-Dominion Bank", "International ADRs", 58.40, "102B", "11.9x", "3.4M"],
+      ["ENB", "Enbridge Inc.", "International ADRs", 41.80, "91B", "18.4x", "5.1M"],
+      ["CNR", "Canadian National Railway", "International ADRs", 112.30, "71B", "19.2x", "1.5M"]
+    ];
+
+    /* ==========================================================================
+       2. TIMEFRAME CONFIGURATION & DETERMINISTIC FALLBACK CANDLE GENERATOR
+       ========================================================================== */
+    const TIMEFRAME_CONFIGS = {
+      "1m":  { interval: "1m",  range: "1d",  count: 90, volatility: 0.005, stepMs: 60 * 1000 },
+      "15m": { interval: "15m", range: "5d",  count: 78, volatility: 0.022, stepMs: 15 * 60 * 1000 },
+      "1h":  { interval: "1h",  range: "1mo", count: 84, volatility: 0.055, stepMs: 60 * 60 * 1000 },
+      "1D":  { interval: "1d",  range: "6mo", count: 90, volatility: 0.150, stepMs: 24 * 60 * 60 * 1000 },
+      "1W":  { interval: "1wk", range: "2y",  count: 68, volatility: 0.350, stepMs: 7 * 24 * 60 * 60 * 1000 },
+      "1M":  { interval: "1mo", range: "5y",  count: 48, volatility: 0.750, stepMs: 30 * 24 * 60 * 60 * 1000 },
+      "1Y":  { interval: "1mo", range: "max", count: 60, volatility: 1.900, stepMs: 61 * 24 * 60 * 60 * 1000 }
+    };
+
+    function hashSeed(str) {
+      let h = 2166136261 >>> 0;
+      for (let i = 0; i < str.length; i++) {
+        h ^= str.charCodeAt(i);
+        h = Math.imul(h, 16777619);
+      }
+      return h >>> 0;
+    }
+
+    function createSeededRng(seed) {
+      let s = seed >>> 0;
+      return function () {
+        s = (s + 0x6D2B79F5) >>> 0;
+        let t = Math.imul(s ^ (s >>> 15), 1 | s);
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      };
+    }
+
+    function buildFallbackTimeframeSeries(symbol, tf, currentLivePrice) {
+      const cfg = TIMEFRAME_CONFIGS[tf] || TIMEFRAME_CONFIGS["1D"];
+      const rng = createSeededRng(hashSeed(`${symbol}_${tf}_apple_v7`));
+      const n = cfg.count;
+
+      const phase1 = rng() * Math.PI * 2;
+      const phase2 = rng() * Math.PI * 2;
+      const phase3 = rng() * Math.PI * 2;
+      const freq1 = 1.4 + rng() * 1.6;
+      const freq2 = 3.2 + rng() * 2.8;
+      const freq3 = 6.5 + rng() * 4.0;
+      const trendSign = (rng() > 0.34 ? 1 : -0.65);
+
+      const rawCloses = [];
+      let walk = 0;
+      for (let i = 0; i < n; i++) {
+        const u = i / (n - 1);
+        walk += (rng() - 0.49) * 0.16;
+        const wave =
+          Math.sin(u * Math.PI * freq1 + phase1) * 0.48 +
+          Math.cos(u * Math.PI * freq2 + phase2) * 0.27 +
+          Math.sin(u * Math.PI * freq3 + phase3) * 0.14 +
+          walk * 0.35 +
+          u * trendSign * 0.85;
+        rawCloses.push(wave);
+      }
+
+      const rawMin = Math.min(...rawCloses);
+      const rawMax = Math.max(...rawCloses);
+      const rawSpan = rawMax - rawMin || 1;
+      const lastRaw = rawCloses[n - 1];
+
+      const decimals = currentLivePrice < 10 ? 3 : 2;
+      const roundPx = (v) => Math.max(0.05, +v.toFixed(decimals));
+
+      const candles = [];
+      let prevClose = null;
+      const endTs = Date.now();
+
+      for (let i = 0; i < n; i++) {
+        const normOffset = ((rawCloses[i] - lastRaw) / rawSpan) * cfg.volatility;
+        const close = i === n - 1
+          ? currentLivePrice
+          : roundPx(currentLivePrice * (1 + normOffset));
+
+        const open = prevClose !== null
+          ? prevClose
+          : roundPx(close * (1 + (rng() - 0.5) * (cfg.volatility / Math.sqrt(n)) * 1.4));
+
+        const barSpread = Math.abs(close - open) + currentLivePrice * (cfg.volatility / Math.sqrt(n)) * (0.45 + rng() * 0.85);
+        const high = roundPx(Math.max(open, close) + barSpread * (0.25 + rng() * 0.55));
+        const low = roundPx(Math.min(open, close) - barSpread * (0.25 + rng() * 0.55));
+
+        const baseVol = tf === "1m" ? 900 : tf === "15m" ? 6800 : tf === "1h" ? 25000 : 190000;
+        const vol = Math.floor(baseVol * (0.45 + rng() * 1.65) * (1 + Math.abs(close - open) / (currentLivePrice * 0.01)));
+
+        candles.push({
+          t: endTs - (n - 1 - i) * cfg.stepMs,
+          o: open,
+          h: high,
+          l: low,
+          c: close,
+          v: vol
+        });
+
+        prevClose = close;
+      }
+
+      return candles;
+    }
+
+    function formatCandleTimestamp(ms, tf) {
+      const dt = new Date(ms);
+      const yyyy = dt.getFullYear();
+      const mm = String(dt.getMonth() + 1).padStart(2, "0");
+      const dd = String(dt.getDate()).padStart(2, "0");
+      const hh = String(dt.getHours()).padStart(2, "0");
+      const min = String(dt.getMinutes()).padStart(2, "0");
+
+      if (tf === "1m") return `${hh}:${min}`;
+      if (tf === "15m") return `${mm}/${dd} ${hh}:${min}`;
+      if (tf === "1h") return `${mm}/${dd} ${hh}:00`;
+      if (tf === "1D") return `${yyyy}/${mm}/${dd}`;
+      if (tf === "1W" || tf === "1M") return `${yyyy}/${mm}`;
+      if (tf === "1Y") return `${yyyy}`;
+      return `${mm}/${dd}`;
+    }
+
+    /* ==========================================================================
+       3. HISTORICAL COMPANY NEWS ARCHIVE (2026/06/01 THROUGH 2026/11/22)
+       ========================================================================== */
+    const OUTLETS = ["CNN", "BLOOMBERG", "REUTERS", "WSJ", "CNBC", "FT"];
+    const REPORTERS = [
+      "Sarah Jenkins, Chief Tech Correspondent",
+      "Ian King, Senior Markets Editor",
+      "Marcus Vance, Institutional Desk",
+      "Elena Rostova, Global Equities",
+      "David Chen, Wall Street Bureau",
+      "Claire Montgomery, Breaking News"
+    ];
+
+    function generateHistoricalCompanyNews(symbol, name, sector, index) {
+      if (symbol === "NVDA") {
+        return [
+          {
+            id: "nvda-2026-11-22",
+            date: "2026/11/22 09:15",
+            severity: "red",
+            outlet: "CNN",
+            headline: "Jensen Huang Outlines Multi-Year Succession & Retirement Roadmap Through Rubin Launch",
+            contributor: "By Sarah Jenkins, Chief Tech Correspondent",
+            url: "https://www.cnn.com/business/tech",
+            photoTheme: "executive",
+            imageUrl: "",
+            summary: [
+              "NVIDIA CEO and co-founder Jensen Huang stunned Wall Street after unveiling a structured multi-year leadership succession and retirement roadmap during a Santa Clara board briefing.",
+              "While Huang confirmed he will remain CEO through the next-generation Rubin architecture rollout, the board established an executive transition committee—sparking heavy institutional volume."
+            ],
+            followUps: [
+              { date: "2026/11/22 10:12", text: "NVIDIA Board Chair issues clarifying note: Huang remains fully at the helm through 2028 product milestones." }
+            ]
+          },
+          {
+            id: "nvda-2026-10-18",
+            date: "2026/10/18 14:15",
+            severity: "yellow",
+            outlet: "BLOOMBERG",
+            headline: "Hyperscalers Expand Q4 Liquid-Cooled Blackwell GB200 Rack Orders by 38%",
+            contributor: "By Ian King, Senior Semiconductor Reporter",
+            url: "https://www.bloomberg.com/technology",
+            photoTheme: "chip",
+            imageUrl: "",
+            summary: [
+              "Major cloud providers increased Q4 2026 allocation commitments for GB200 NVL72 liquid-cooled clusters as sovereign AI data centers come online.",
+              "Taiwanese supply chain checks confirm CoWoS advanced packaging capacity remains fully sold out."
+            ],
+            followUps: []
+          },
+          {
+            id: "nvda-2026-08-27",
+            date: "2026/08/27 16:05",
+            severity: "yellow",
+            outlet: "WSJ",
+            headline: "NVIDIA Q2 FY27 Revenue Surpasses Consensus as Sovereign AI Cloud Spending Accelerates",
+            contributor: "By Asa Fitch, Technology Reporter",
+            url: "https://www.wsj.com/tech",
+            photoTheme: "chart",
+            imageUrl: "",
+            summary: [
+              "Data center compute and networking shipments propelled quarterly margins above Wall Street forecasts in late August 2026."
+            ],
+            followUps: []
+          },
+          {
+            id: "nvda-2026-06-01",
+            date: "2026/06/01 09:30",
+            severity: "blue",
+            outlet: "REUTERS",
+            headline: "NVIDIA Kicks Off June 2026 With Omniverse Industrial Robotics Simulation Suite",
+            contributor: "By Stephen Nellis, Tech Correspondent",
+            url: "https://www.reuters.com/technology",
+            photoTheme: "network",
+            imageUrl: "",
+            summary: [
+              "On 2026/06/01, NVIDIA released physics-accurate digital twin APIs enabling manufacturing partners to train autonomous warehouse fleets in half the time."
+            ],
+            followUps: []
+          }
+        ];
+      }
+
+      const outlet1 = OUTLETS[index % OUTLETS.length];
+      const outlet2 = OUTLETS[(index + 1) % OUTLETS.length];
+      const outlet3 = OUTLETS[(index + 3) % OUTLETS.length];
+      const outlet4 = OUTLETS[(index + 5) % OUTLETS.length];
+      const rep1 = REPORTERS[index % REPORTERS.length];
+      const rep2 = REPORTERS[(index + 2) % REPORTERS.length];
+
+      const dNov = index % 2 === 0 ? "2026/11/22 08:40" : "2026/11/19 16:15";
+      const dSep = `2026/09/${String((index % 27) + 1).padStart(2, "0")} 11:05`;
+      const dJul = `2026/07/${String((index % 28) + 1).padStart(2, "0")} 13:45`;
+      const dJun = `2026/06/${String((index % 28) + 1).padStart(2, "0")} 09:15`;
+      const topSev = index % 3 === 0 ? "red" : "yellow";
+
+      return [
+        {
+          id: `${symbol.toLowerCase().replace(/[^a-z0-9]/g, "")}-2026-11`,
+          date: dNov,
+          severity: topSev,
+          outlet: outlet1,
+          headline: topSev === "red"
+            ? `${name} (${symbol}) Board Approves Strategic Restructuring & Capital Return Surge`
+            : `${name} Beats Late-2026 Institutional Consensus on Strong ${sector} Demand`,
+          contributor: `By ${rep1}`,
+          url: `https://www.${outlet1.toLowerCase()}.com/markets`,
+          photoTheme: topSev === "red" ? "executive" : "chart",
+          imageUrl: "",
+          summary: [
+            `Filed ${dNov}, ${name} (${symbol}) drew heavy institutional desk activity after releasing updated Q4 2026 guidance across its core ${sector} division.`,
+            `Portfolio managers highlighted expanding operating margins and disciplined capital allocation heading into year-end 2026.`
+          ],
+          followUps: []
+        },
+        {
+          id: `${symbol.toLowerCase().replace(/[^a-z0-9]/g, "")}-2026-09`,
+          date: dSep,
+          severity: "yellow",
+          outlet: outlet2,
+          headline: `${outlet2} Desk: Institutional Funds Raise ${symbol} Overweight Targets for Q4 2026`,
+          contributor: `By ${rep2}`,
+          url: `https://www.${outlet2.toLowerCase()}.com/business`,
+          photoTheme: "network",
+          imageUrl: "",
+          summary: [
+            `Quarterly 13F filings analyzed on ${dSep} showed net institutional accumulation in ${name} following resilient enterprise and consumer order trends.`
+          ],
+          followUps: []
+        },
+        {
+          id: `${symbol.toLowerCase().replace(/[^a-z0-9]/g, "")}-2026-07`,
+          date: dJul,
+          severity: "blue",
+          outlet: outlet3,
+          headline: `${name} Expands Global ${sector} Partnerships & Automation Infrastructure`,
+          contributor: `By ${rep1}`,
+          url: `https://www.${outlet3.toLowerCase()}.com/companies`,
+          photoTheme: "chip",
+          imageUrl: "",
+          summary: [
+            `On ${dJul}, ${name} announced multi-year supply and enterprise deployment agreements aimed at accelerating 2026–2027 revenue visibility.`
+          ],
+          followUps: []
+        },
+        {
+          id: `${symbol.toLowerCase().replace(/[^a-z0-9]/g, "")}-2026-06`,
+          date: dJun,
+          severity: "blue",
+          outlet: outlet4,
+          headline: `${name} Outlines H2 2026 ${sector} Product Roadmap at Summer Investor Summit`,
+          contributor: `By ${rep2}`,
+          url: `https://www.${outlet4.toLowerCase()}.com/markets`,
+          photoTheme: "media",
+          imageUrl: "",
+          summary: [
+            `Starting June 2026 (${dJun}), ${name} executives detailed margin expansion targets and global expansion plans for the second half of 2026.`
+          ],
+          followUps: []
+        }
+      ];
+    }
+
+    const BUSINESSES = {};
+    RAW_COMPANY_LIST.forEach((row, idx) => {
+      const [symbol, name, sector, basePrice, mktCap, peRatio, volume] = row;
+      const decimals = basePrice < 10 ? 3 : 2;
+      BUSINESSES[symbol] = {
+        symbol,
+        name,
+        sector,
+        price: basePrice,
+        open: +(basePrice * (1 - ((idx % 7) - 3) * 0.004)).toFixed(decimals),
+        mktCap,
+        peRatio,
+        volume,
+        isRealQuote: false,
+        quoteSource: "Simulated Feed",
+        lastSyncTime: null,
+        seriesByTf: {},
+        realSeriesFetched: {},
+        news: generateHistoricalCompanyNews(symbol, name, sector, idx)
+      };
+    });
+
+    function getCandlesForSymbolAndTf(symbol, tf) {
+      const biz = BUSINESSES[symbol];
+      if (!biz) return [];
+      const validTf = TIMEFRAME_CONFIGS[tf] ? tf : "1D";
+      if (!biz.seriesByTf[validTf] || biz.seriesByTf[validTf].length === 0) {
+        biz.seriesByTf[validTf] = buildFallbackTimeframeSeries(symbol, validTf, biz.price);
+      }
+      return biz.seriesByTf[validTf];
+    }
+
+    /* ==========================================================================
+       4. PERSISTENT STORAGE & STATE
+       ========================================================================== */
+    const STORAGE_KEY = "apple_live_terminal_v7";
+
+    function buildDefaultUser(id, name, provider, contact) {
+      return {
+        id,
+        name,
+        provider,
+        contact,
+        credits: 10000.00,
+        holdings: {},
+        limitOrders: [],
+        history: [],
+        favorites: [...INITIAL_FAVORITES]
+      };
+    }
+
+    let state = {
+      activeUserId: "guest_trader",
+      users: {
+        guest_trader: buildDefaultUser("guest_trader", "Demo Trader", "Local Wallet", "trader@icloud.com")
+      },
+      activeSymbol: "NVDA",
+      marketFilter: "FAV",
+      sectorFilter: "ALL_SECTORS",
+      chartMode: "extra", // Defaults to Extra Professional
+      timeframe: "1D",    // 1m, 15m, 1h, 1D, 1W, 1M, 1Y
+      orderSide: "BUY",
+      orderType: "MARKET",
+      orderUnit: "SHARES",
+      bottomTab: "positions",
+      newsScope: "TICKER",
+      darkMode: false,    // Apple Light Mode (#F2F2F7) default
+      liquidGlass: false, // Zero-lag matte default
+      finnhubApiKey: "",
+      severityFilters: { red: true, yellow: true, blue: true }
+    };
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          state = { ...state, ...parsed };
+        }
+        if (!["extra", "pro", "simple"].includes(state.chartMode)) state.chartMode = "extra";
+        if (!TIMEFRAME_CONFIGS[state.timeframe]) state.timeframe = "1D";
+        if (!state.users[state.activeUserId]) {
+          state.activeUserId = Object.keys(state.users)[0] || "guest_trader";
+        }
+        if (!BUSINESSES[state.activeSymbol]) state.activeSymbol = "NVDA";
+      } catch (e) {
+        console.warn("Storage load fallback:", e);
+      }
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (e) {
+        console.warn("Save failed:", e);
+      }
+    }
+
+    function currentUser() {
+      return state.users[state.activeUserId];
+    }
+
+    /* ==========================================================================
+       5. REAL-TIME CORS RACE HELPER, REAL MARKET ENGINE & REAL NEWS ENGINE
+       ========================================================================== */
+    // Races multiple public CORS gateways in parallel with strict timeout so real data loads fast
+    async function fetchTextWithCorsRace(targetUrl, timeoutMs = 5500) {
+      const proxies = [
+        `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`,
+        `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`,
+        `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}`
+      ];
+
+      const attempts = proxies.map(async (proxyUrl) => {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), timeoutMs);
+        try {
+          const res = await fetch(proxyUrl, { signal: controller.signal });
+          clearTimeout(timer);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const text = await res.text();
+          if (!text || text.length < 20) throw new Error("Empty payload");
+          return text;
+        } catch (err) {
+          clearTimeout(timer);
+          throw err;
+        }
+      });
+
+      return Promise.any(attempts);
+    }
+
+    // RealMarketEngine: Fetches real live quotes & OHLCV candles from Yahoo Finance + optional Finnhub
+    const RealMarketEngine = {
+      ws: null,
+      wsSymbol: null,
+      inFlight: new Set(),
+
+      mapYahooSymbol(sym) {
+        if (sym === "BRK.B") return "BRK-B";
+        return sym;
+      },
+
+      async fetchSymbolChartAndQuote(symbol, tf = state.timeframe, silent = true) {
+        const biz = BUSINESSES[symbol];
+        if (!biz) return false;
+        const validTf = TIMEFRAME_CONFIGS[tf] ? tf : "1D";
+        const cfg = TIMEFRAME_CONFIGS[validTf];
+        const key = `${symbol}_${validTf}`;
+        if (this.inFlight.has(key)) return false;
+        this.inFlight.add(key);
+
+        try {
+          const ySym = this.mapYahooSymbol(symbol);
+          const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ySym)}?interval=${cfg.interval}&range=${cfg.range}&includePrePost=false`;
+          const rawText = await fetchTextWithCorsRace(url, 6000);
+          const json = JSON.parse(rawText);
+          const result = json?.chart?.result?.[0];
+          if (!result || !result.meta) throw new Error("Invalid Yahoo Finance structure");
+
+          const meta = result.meta;
+          const timestamps = result.timestamp || [];
+          const q = result.indicators?.quote?.[0] || {};
+          const opens = q.open || [];
+          const highs = q.high || [];
+          const lows = q.low || [];
+          const closes = q.close || [];
+          const vols = q.volume || [];
+
+          const parsedCandles = [];
+          for (let i = 0; i < timestamps.length; i++) {
+            const c = closes[i];
+            if (c == null || isNaN(c)) continue;
+            const o = opens[i] != null ? opens[i] : c;
+            const h = highs[i] != null ? highs[i] : Math.max(o, c);
+            const l = lows[i] != null ? lows[i] : Math.min(o, c);
+            const v = vols[i] != null ? vols[i] : 1000;
+            parsedCandles.push({
+              t: timestamps[i] * 1000,
+              o: +o.toFixed(c < 10 ? 3 : 2),
+              h: +h.toFixed(c < 10 ? 3 : 2),
+              l: +l.toFixed(c < 10 ? 3 : 2),
+              c: +c.toFixed(c < 10 ? 3 : 2),
+              v: Math.round(v)
+            });
+          }
+
+          const prevPx = biz.price;
+          const livePx = meta.regularMarketPrice != null
+            ? +meta.regularMarketPrice.toFixed(meta.regularMarketPrice < 10 ? 3 : 2)
+            : (parsedCandles.length ? parsedCandles[parsedCandles.length - 1].c : biz.price);
+
+          const prevClose = meta.chartPreviousClose || meta.previousClose || (parsedCandles[0]?.o ?? biz.open);
+
+          biz.price = livePx;
+          biz.open = +prevClose.toFixed(livePx < 10 ? 3 : 2);
+          biz.isRealQuote = true;
+          biz.quoteSource = state.finnhubApiKey ? "Finnhub + Yahoo Live" : "Yahoo Finance Live";
+          biz.lastSyncTime = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+
+          if (meta.regularMarketVolume) {
+            const v = meta.regularMarketVolume;
+            biz.volume = v >= 1e6 ? `${(v / 1e6).toFixed(1)}M` : `${(v / 1e3).toFixed(1)}K`;
+          }
+
+          if (parsedCandles.length >= 10) {
+            // Keep up to the most recent 130 bars for crisp chart density
+            biz.seriesByTf[validTf] = parsedCandles.slice(-130);
+            biz.realSeriesFetched[validTf] = true;
+          } else {
+            // Anchor fallback series to the real live price
+            biz.seriesByTf[validTf] = buildFallbackTimeframeSeries(symbol, validTf, livePx);
+          }
+
+          if (symbol === state.activeSymbol) {
+            triggerPriceFlash(livePx - prevPx);
+            updateLiveStatusPill(true, biz.quoteSource, biz.lastSyncTime);
+            updateLiveValues();
+            if (validTf === state.timeframe) renderActiveChart();
+            if (!silent) {
+              showAppleBanner(`${symbol} • Live Sync`, `$${livePx.toFixed(2)} (${biz.quoteSource})`);
+            }
+          }
+
+          this.inFlight.delete(key);
+          return true;
+        } catch (err) {
+          this.inFlight.delete(key);
+          if (symbol === state.activeSymbol && !biz.isRealQuote) {
+            updateLiveStatusPill(false, "Simulated Feed", new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }));
+          }
+          return false;
+        }
+      },
+
+      // Optional Finnhub REST Quote & Real-Time WebSocket Trade Stream
+      async fetchFinnhubQuote(symbol) {
+        const token = (state.finnhubApiKey || "").trim();
+        if (!token) return false;
+        const biz = BUSINESSES[symbol];
+        if (!biz) return false;
+        try {
+          const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(symbol)}&token=${encodeURIComponent(token)}`);
+          if (!res.ok) return false;
+          const data = await res.json();
+          if (data && data.c > 0) {
+            const prevPx = biz.price;
+            biz.price = +data.c.toFixed(data.c < 10 ? 3 : 2);
+            if (data.pc > 0) biz.open = +data.pc.toFixed(data.pc < 10 ? 3 : 2);
+            biz.isRealQuote = true;
+            biz.quoteSource = "Finnhub Live";
+            biz.lastSyncTime = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+
+            const series = biz.seriesByTf[state.timeframe];
+            if (series && series.length > 0) {
+              const last = series[series.length - 1];
+              last.c = biz.price;
+              last.h = Math.max(last.h, biz.price);
+              last.l = Math.min(last.l, biz.price);
+            }
+
+            if (symbol === state.activeSymbol) {
+              triggerPriceFlash(biz.price - prevPx);
+              updateLiveStatusPill(true, "Finnhub Live", biz.lastSyncTime);
+              updateLiveValues();
+              renderActiveChart();
+            }
+            return true;
+          }
+        } catch (_) {}
+        return false;
+      },
+
+      connectFinnhubSocket(symbol) {
+        const token = (state.finnhubApiKey || "").trim();
+        if (!token) return;
+        try {
+          if (this.ws) {
+            if (this.ws.readyState === WebSocket.OPEN && this.wsSymbol) {
+              this.ws.send(JSON.stringify({ type: "unsubscribe", symbol: this.wsSymbol }));
+            }
+          } else {
+            this.ws = new WebSocket(`wss://ws.finnhub.io?token=${encodeURIComponent(token)}`);
+            this.ws.onmessage = (evt) => {
+              try {
+                const msg = JSON.parse(evt.data);
+                if (msg.type === "trade" && Array.isArray(msg.data) && msg.data.length > 0) {
+                  const lastTrade = msg.data[msg.data.length - 1];
+                  const b = BUSINESSES[lastTrade.s];
+                  if (b && lastTrade.p > 0) {
+                    const prev = b.price;
+                    b.price = +lastTrade.p.toFixed(lastTrade.p < 10 ? 3 : 2);
+                    b.isRealQuote = true;
+                    b.quoteSource = "Finnhub WS Live";
+                    b.lastSyncTime = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+                    if (lastTrade.s === state.activeSymbol) {
+                      triggerPriceFlash(b.price - prev);
+                      updateLiveStatusPill(true, "Finnhub WS Live", b.lastSyncTime);
+                      updateLiveValues();
+                      renderActiveChart();
+                    }
+                  }
+                }
+              } catch (_) {}
+            };
+          }
+
+          const sub = () => {
+            this.wsSymbol = symbol;
+            this.ws.send(JSON.stringify({ type: "subscribe", symbol }));
+          };
+          if (this.ws.readyState === WebSocket.OPEN) sub();
+          else this.ws.addEventListener("open", sub, { once: true });
+        } catch (_) {}
+      }
+    };
+
+    // RealNewsEngine: Fetches real live breaking news from GDELT 2.0 DOC API + Google News RSS
+    const RealNewsEngine = {
+      inFlight: new Set(),
+      initialLoadedSymbols: new Set(),
+
+      classifySeverity(headline) {
+        const h = (headline || "").toLowerCase();
+        if (/(retire|succession|ceo|plunge|crash|surge|soar|sec |probe|lawsuit|merger|acqui|bankrupt|fda|emergency|breaking|halted|warning|guidance cut|layoff)/.test(h)) {
+          return "red";
+        }
+        if (/(earnings|revenue|quarter|q1|q2|q3|q4|analyst|upgrade|downgrade|target|forecast|ai |chip|partnership|dividend|buyback|growth)/.test(h)) {
+          return "yellow";
+        }
+        return "blue";
+      },
+
+      normalizeOutlet(domainOrSource) {
+        if (!domainOrSource) return "WIRE";
+        const s = domainOrSource.toLowerCase();
+        if (s.includes("cnn")) return "CNN";
+        if (s.includes("bloomberg")) return "BLOOMBERG";
+        if (s.includes("reuters")) return "REUTERS";
+        if (s.includes("wsj") || s.includes("wall street")) return "WSJ";
+        if (s.includes("cnbc")) return "CNBC";
+        if (s.includes("ft.com") || s.includes("financial times")) return "FT";
+        if (s.includes("yahoo")) return "YAHOO";
+        if (s.includes("forbes")) return "FORBES";
+        if (s.includes("barrons")) return "BARRON'S";
+        if (s.includes("marketwatch")) return "MARKETWATCH";
+        if (s.includes("seekingalpha")) return "SEEKING ALPHA";
+        if (s.includes("techcrunch")) return "TECHCRUNCH";
+        if (s.includes("theverge")) return "THE VERGE";
+        return domainOrSource.replace(/^www\./i, "").split(".")[0].toUpperCase().slice(0, 14);
+      },
+
+      formatGdeltDate(seendate) {
+        // GDELT format: YYYYMMDDTHHMMSSZ
+        if (!seendate || seendate.length < 13) {
+          const now = new Date();
+          return `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, "0")}/${String(now.getDate()).padStart(2, "0")} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+        }
+        const y = seendate.slice(0, 4);
+        const m = seendate.slice(4, 6);
+        const d = seendate.slice(6, 8);
+        const hh = seendate.slice(9, 11);
+        const mm = seendate.slice(11, 13);
+        return `${y}/${m}/${d} ${hh}:${mm}`;
+      },
+
+      formatRssDate(pubDateStr) {
+        const dt = pubDateStr ? new Date(pubDateStr) : new Date();
+        if (isNaN(dt.getTime())) return "2026/11/22 10:00";
+        return `${dt.getFullYear()}/${String(dt.getMonth() + 1).padStart(2, "0")}/${String(dt.getDate()).padStart(2, "0")} ${String(dt.getHours()).padStart(2, "0")}:${String(dt.getMinutes()).padStart(2, "0")}`;
+      },
+
+      async fetchFromGdelt(biz) {
+        const shortName = biz.name.replace(/,?\s*(Inc\.|Corporation|Corp\.|plc|Ltd\.|N\.V\.|S\.A\.|Holdings|Group)/gi, "").trim();
+        const query = encodeURIComponent(`("${shortName}" OR ${biz.symbol}) (stock OR shares OR market OR earnings OR CEO)`);
+        const url = `https://api.gdeltproject.org/api/v2/doc/doc?query=${query}&mode=ArtList&maxrecords=12&sort=DateDesc&format=json`;
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 5500);
+        try {
+          const res = await fetch(url, { signal: controller.signal });
+          clearTimeout(timer);
+          if (!res.ok) return [];
+          const data = await res.json();
+          if (!Array.isArray(data?.articles)) return [];
+
+          return data.articles
+            .filter(a => a.title && a.url)
+            .map((a, i) => {
+              const outlet = this.normalizeOutlet(a.domain || a.sourcecountry);
+              const sev = this.classifySeverity(a.title);
+              return {
+                id: `gdelt_${biz.symbol}_${hashSeed(a.url)}_${i}`,
+                date: this.formatGdeltDate(a.seendate),
+                severity: sev,
+                outlet,
+                headline: a.title.trim(),
+                contributor: `${outlet} Live Desk • Real-Time Wire`,
+                url: a.url,
+                imageUrl: a.socialimage || "",
+                photoTheme: sev === "red" ? "executive" : (sev === "yellow" ? "chart" : "network"),
+                isRealLive: true,
+                summary: [
+                  `Live wire report indexed from ${outlet} (${a.domain || "Global News"}) covering ${biz.name} (${biz.symbol}).`,
+                  `Click the Original Source link in the bottom-left corner of this window to read the complete article directly on ${outlet}.`
+                ],
+                followUps: []
+              };
+            });
+        } catch (_) {
+          clearTimeout(timer);
+          return [];
+        }
+      },
+
+      async fetchFromGoogleNewsRss(biz) {
+        const shortName = biz.name.replace(/,?\s*(Inc\.|Corporation|Corp\.|plc|Ltd\.|N\.V\.|S\.A\.|Holdings|Group)/gi, "").trim();
+        const rssUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(`${biz.symbol} "${shortName}" stock`)}&hl=en-US&gl=US&ceid=US:en`;
+        try {
+          const xmlText = await fetchTextWithCorsRace(rssUrl, 5500);
+          const doc = new DOMParser().parseFromString(xmlText, "text/xml");
+          const items = Array.from(doc.querySelectorAll("item")).slice(0, 12);
+
+          return items.map((item, i) => {
+            const rawTitle = item.querySelector("title")?.textContent || "";
+            const link = item.querySelector("link")?.textContent || `https://news.google.com/search?q=${biz.symbol}`;
+            const pubDate = item.querySelector("pubDate")?.textContent || "";
+            const sourceEl = item.querySelector("source")?.textContent || "";
+
+            // Google News titles often end with " - Outlet Name"
+            let cleanTitle = rawTitle;
+            let outletName = sourceEl;
+            const dashIdx = rawTitle.lastIndexOf(" - ");
+            if (dashIdx > 15) {
+              cleanTitle = rawTitle.slice(0, dashIdx).trim();
+              if (!outletName) outletName = rawTitle.slice(dashIdx + 3).trim();
+            }
+
+            const outlet = this.normalizeOutlet(outletName || "Google News");
+            const sev = this.classifySeverity(cleanTitle);
+
+            return {
+              id: `gn_${biz.symbol}_${hashSeed(cleanTitle)}_${i}`,
+              date: this.formatRssDate(pubDate),
+              severity: sev,
+              outlet,
+              headline: cleanTitle,
+              contributor: `${outlet} Markets Desk • Live RSS`,
+              url: link,
+              imageUrl: "",
+              photoTheme: sev === "red" ? "executive" : (sev === "yellow" ? "chart" : "media"),
+              isRealLive: true,
+              summary: [
+                `Real-time news dispatch syndicated via ${outlet} regarding ${biz.name} (${biz.symbol}) in the ${biz.sector} sector.`,
+                `Use the bottom-left Original Source link to open the full coverage in a new tab.`
+              ],
+              followUps: []
+            };
+          });
+        } catch (_) {
+          return [];
+        }
+      },
+
+      async syncSymbolNews(symbol, manualTrigger = false) {
+        const biz = BUSINESSES[symbol];
+        if (!biz || this.inFlight.has(symbol)) return 0;
+        this.inFlight.add(symbol);
+
+        try {
+          const [gdeltList, rssList] = await Promise.all([
+            this.fetchFromGdelt(biz),
+            this.fetchFromGoogleNewsRss(biz)
+          ]);
+
+          const combined = [...gdeltList, ...rssList];
+          const existingTitles = new Set(biz.news.map(n => n.headline.toLowerCase().slice(0, 52)));
+          let addedCount = 0;
+          let newestStory = null;
+
+          for (const article of combined) {
+            const sig = article.headline.toLowerCase().slice(0, 52);
+            if (!sig || existingTitles.has(sig)) continue;
+            existingTitles.add(sig);
+            biz.news.unshift(article);
+            addedCount++;
+            if (!newestStory) newestStory = article;
+
+            // If a floating window is open for this ticker, append live follow-up thread underneath!
+            const openWin = openNewsWindows.find(w => w.symbol === symbol);
+            if (openWin) {
+              const openStory = biz.news.find(n => n.id === openWin.newsId);
+              if (openStory && openStory.id !== article.id) {
+                openStory.followUps = openStory.followUps || [];
+                if (openStory.followUps.length < 5) {
+                  openStory.followUps.unshift({
+                    date: article.date,
+                    text: `[${article.outlet}] ${article.headline}`
+                  });
+                  refreshOpenWindowBody(openWin.winId, symbol, openStory);
+                }
+              }
+            }
+          }
+
+          // Keep feed bounded cleanly
+          if (biz.news.length > 45) {
+            biz.news.length = 45;
+          }
+
+          const wasInitialized = this.initialLoadedSymbols.has(symbol);
+          this.initialLoadedSymbols.add(symbol);
+
+          if (symbol === state.activeSymbol) {
+            renderNewsWire();
+            const statusEl = document.getElementById("newsFeedStatusTag");
+            if (statusEl && combined.length > 0) {
+              statusEl.textContent = `Live Wire (${combined.length} live) + Archive`;
+            }
+
+            if (addedCount > 0 && (wasInitialized || manualTrigger) && newestStory) {
+              showAppleBanner(`LIVE UPDATE • ${symbol} (${newestStory.outlet})`, newestStory.headline, false, 3600);
+            } else if (manualTrigger && addedCount === 0) {
+              showAppleBanner(`${symbol} News Up to Date`, "No newer wire headlines since last sync.");
+            }
+          }
+
+          this.inFlight.delete(symbol);
+          return addedCount;
+        } catch (_) {
+          this.inFlight.delete(symbol);
+          return 0;
+        }
+      }
+    };
+
+    function fetchRealLiveNews(symbol, manualTrigger = false) {
+      RealNewsEngine.syncSymbolNews(symbol, manualTrigger);
+    }
+
+    async function forceManualLiveSync() {
+      const spinner = document.getElementById("manualSyncSpinner");
+      if (spinner) spinner.classList.add("animate-spin");
+      await Promise.all([
+        RealMarketEngine.fetchSymbolChartAndQuote(state.activeSymbol, state.timeframe, false),
+        RealMarketEngine.fetchFinnhubQuote(state.activeSymbol),
+        RealNewsEngine.syncSymbolNews(state.activeSymbol, true)
+      ]);
+      if (spinner) spinner.classList.remove("animate-spin");
+    }
+
+    function updateLiveStatusPill(isReal, sourceLabel, timeStr) {
+      const dot = document.getElementById("livePulseDot");
+      const ping = document.getElementById("livePulsePing");
+      const lbl = document.getElementById("liveFeedSourceLabel");
+      const quoteSrc = document.getElementById("activeQuoteSourceText");
+
+      const color = isReal ? "var(--apple-green)" : "var(--apple-orange)";
+      if (dot) dot.style.backgroundColor = color;
+      if (ping) ping.style.backgroundColor = color;
+      if (lbl) lbl.textContent = timeStr ? `${sourceLabel} • ${timeStr}` : sourceLabel;
+      if (quoteSrc) quoteSrc.textContent = timeStr ? `${sourceLabel} (${timeStr})` : sourceLabel;
+    }
+
+    function triggerPriceFlash(delta) {
+      if (!delta) return;
+      const box = document.getElementById("livePriceFlashBox");
+      if (!box) return;
+      box.classList.remove("tick-up", "tick-down");
+      void box.offsetWidth;
+      box.classList.add(delta > 0 ? "tick-up" : "tick-down");
+    }
+
+    /* ==========================================================================
+       6. APPLE DYNAMIC NOTIFICATION BANNER, DAY/NIGHT & SETTINGS POPOVER
+       ========================================================================== */
+    let bannerTimer = null;
+    let pendingOtpCode = null;
+    let pendingContact = null;
+
+    function showAppleBanner(title, sub, showOtpBtn = false, duration = 3200) {
+      const el = document.getElementById("appleBanner");
+      document.getElementById("bannerTitle").textContent = title;
+      document.getElementById("bannerSub").textContent = sub;
+      const btn = document.getElementById("bannerActionBtn");
+      btn.classList.toggle("hidden", !showOtpBtn);
+      el.classList.add("show");
+      clearTimeout(bannerTimer);
+      bannerTimer = setTimeout(() => el.classList.remove("show"), duration);
+    }
+
+    document.getElementById("bannerActionBtn").addEventListener("click", () => {
+      if (pendingOtpCode) {
+        document.getElementById("authOtpInput").value = pendingOtpCode;
+        document.getElementById("appleBanner").classList.remove("show");
+      }
+    });
+
+    function setDarkMode(isDark) {
+      state.darkMode = !!isDark;
+      applyAppearance();
+      saveState();
+      renderActiveChart();
+    }
+
+    function toggleLiquidGlass() {
+      state.liquidGlass = !state.liquidGlass;
+      applyAppearance();
+      saveState();
+    }
+
+    function applyAppearance() {
+      document.body.classList.toggle("dark-mode", state.darkMode);
+      document.body.classList.toggle("liquid-glass", state.liquidGlass);
+      document.getElementById("themeDayBtn").classList.toggle("active", !state.darkMode);
+      document.getElementById("themeNightBtn").classList.toggle("active", state.darkMode);
+
+      const sw = document.getElementById("liquidGlassSwitch");
+      if (sw) sw.classList.toggle("on", state.liquidGlass);
+    }
+
+    function toggleSettingsMenu() {
+      const pop = document.getElementById("settingsPopover");
+      pop.classList.toggle("hidden");
+      if (!pop.classList.contains("hidden")) {
+        document.getElementById("finnhubApiKeyInput").value = state.finnhubApiKey || "";
+        document.getElementById("finnhubKeyStatus").textContent = state.finnhubApiKey ? "Finnhub Active" : "Yahoo Active";
+      }
+    }
+
+    function saveFinnhubKey() {
+      const val = document.getElementById("finnhubApiKeyInput").value.trim();
+      state.finnhubApiKey = val;
+      saveState();
+      document.getElementById("finnhubKeyStatus").textContent = val ? "Finnhub Active" : "Yahoo Active";
+      if (val) {
+        RealMarketEngine.connectFinnhubSocket(state.activeSymbol);
+        RealMarketEngine.fetchFinnhubQuote(state.activeSymbol);
+        showAppleBanner("Finnhub Live Enabled", "Connected to real-time Finnhub trade stream.");
+      } else {
+        showAppleBanner("Finnhub Key Cleared", "Using Yahoo Finance real-time data feed.");
+      }
+    }
+
+    document.addEventListener("click", (e) => {
+      const pop = document.getElementById("settingsPopover");
+      const btn = document.getElementById("settingsBtn");
+      if (!pop.contains(e.target) && !btn.contains(e.target)) {
+        pop.classList.add("hidden");
+      }
+      const searchWrap = document.getElementById("globalSearchInput").parentElement.parentElement;
+      if (!searchWrap.contains(e.target)) {
+        document.getElementById("searchDropdown").classList.add("hidden");
+      }
+    });
+
+    function setChartMode(mode) {
+      state.chartMode = ["extra", "pro", "simple"].includes(mode) ? mode : "extra";
+      saveState();
+      applyChartModeUI();
+      renderActiveChart();
+    }
+
+    function applyChartModeUI() {
+      const m = state.chartMode;
+      const labels = { extra: "Extra Pro", pro: "Pro", simple: "Simple" };
+      document.getElementById("chartModeLabel").textContent = labels[m];
+
+      ["extra", "pro", "simple"].forEach(k => {
+        const b = document.getElementById(`mode${k.charAt(0).toUpperCase() + k.slice(1)}Btn`);
+        if (b) b.classList.toggle("active", m === k);
+      });
+
+      const isExtra = m === "extra";
+      document.getElementById("xproTerminalContainer").classList.toggle("hidden", !isExtra);
+      document.getElementById("xproToolbarControls").classList.toggle("hidden", !isExtra);
+      document.getElementById("standardChartCard").classList.toggle("hidden", isExtra);
+      document.getElementById("proDepthStrip").classList.toggle("hidden", m !== "pro");
+    }
+
+    /* ==========================================================================
+       7. MULTI-PROVIDER AUTHENTICATION & 10,000.00 CR WALLET
+       ========================================================================== */
+    function openAuthModal() {
+      document.getElementById("settingsPopover").classList.add("hidden");
+      renderSavedAccounts();
+      document.getElementById("authModal").classList.remove("hidden");
+    }
+
+    function closeAuthModal() {
+      document.getElementById("authModal").classList.add("hidden");
+    }
+
+    function sendOtpCode() {
+      const val = document.getElementById("authContactInput").value.trim();
+      if (!val) {
+        showAppleBanner("Contact Required", "Enter a phone number or email address.");
+        return;
+      }
+      pendingContact = val;
+      pendingOtpCode = String(Math.floor(100000 + Math.random() * 900000));
+      document.getElementById("otpVerifyRow").classList.remove("hidden");
+      showAppleBanner(`Verification Code: ${pendingOtpCode}`, `Sent to ${val}`, true, 9000);
+    }
+
+    function verifyOtpAndLogin() {
+      const entered = document.getElementById("authOtpInput").value.trim();
+      if (!pendingOtpCode || entered !== pendingOtpCode) {
+        showAppleBanner("Invalid Code", "Enter the 6-digit verification code.");
+        return;
+      }
+      const id = "user_" + pendingContact.toLowerCase().replace(/[^a-z0-9]/g, "_");
+      const isPhone = /^[+\d\s()-]+$/.test(pendingContact);
+      if (!state.users[id]) {
+        state.users[id] = buildDefaultUser(id, pendingContact, isPhone ? "Phone OTP" : "Email OTP", pendingContact);
+        showAppleBanner("Wallet Created", "10,000.00 CR credited to your new account.");
+      } else {
+        showAppleBanner("Signed In", `Active wallet: ${pendingContact}`);
+      }
+      state.activeUserId = id;
+      pendingOtpCode = null;
+      document.getElementById("otpVerifyRow").classList.add("hidden");
+      document.getElementById("authContactInput").value = "";
+      document.getElementById("authOtpInput").value = "";
+      saveState();
+      closeAuthModal();
+      refreshAllUI();
+    }
+
+    function oauthSignIn(provider) {
+      const id = `oauth_${provider.toLowerCase()}`;
+      if (!state.users[id]) {
+        state.users[id] = buildDefaultUser(id, `${provider} Trader`, provider, `trader@${provider.toLowerCase()}.com`);
+        showAppleBanner(`${provider} Connected`, "10,000.00 CR granted to new wallet.");
+      } else {
+        showAppleBanner(`${provider} Signed In`, `Balance: ${state.users[id].credits.toFixed(2)} CR`);
+      }
+      state.activeUserId = id;
+      saveState();
+      closeAuthModal();
+      refreshAllUI();
+    }
+
+    function switchSavedAccount(id) {
+      if (state.users[id]) {
+        state.activeUserId = id;
+        saveState();
+        closeAuthModal();
+        refreshAllUI();
+        showAppleBanner("Account Switched", `Active: ${state.users[id].name}`);
+      }
+    }
+
+    function resetAccountCredits() {
+      const u = currentUser();
+      u.credits = 10000.00;
+      u.holdings = {};
+      u.limitOrders = [];
+      u.history = [];
+      saveState();
+      refreshAllUI();
+      showAppleBanner("Wallet Reset", "Balance restored to 10,000.00 CR.");
+    }
+
+    function renderSavedAccounts() {
+      const list = document.getElementById("savedAccountsList");
+      list.innerHTML = Object.values(state.users).map(u => `
+        <button onclick="switchSavedAccount('${u.id}')" class="apple-rect-btn p-2.5 flex items-center justify-between text-left">
+          <div class="min-w-0 pr-2">
+            <div class="font-semibold text-xs truncate">${u.name} <span class="text-[10px]" style="color: var(--text-tertiary)">(${u.provider})</span></div>
+            <div class="text-[10px] truncate" style="color: var(--text-tertiary)">${u.contact}</div>
+          </div>
+          <span class="sf-mono text-xs font-semibold shrink-0" style="color: var(--apple-green-text)">${u.credits.toFixed(2)} CR</span>
+        </button>
+      `).join("");
+    }
+
+    /* ==========================================================================
+       8. APPLE SPOTLIGHT SEARCH & 126 BUSINESSES DISCOVERY BAR
+       ========================================================================== */
+    const searchInput = document.getElementById("globalSearchInput");
+    const searchDrop = document.getElementById("searchDropdown");
+    let searchMatches = [];
+    let searchSelectedIndex = -1;
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "/" && document.activeElement.tagName !== "INPUT") {
+        e.preventDefault();
+        searchInput.focus();
+      }
+    });
+
+    searchInput.addEventListener("input", () => {
+      const q = searchInput.value.trim().toLowerCase();
+      if (!q) {
+        searchDrop.classList.add("hidden");
+        searchMatches = [];
+        searchSelectedIndex = -1;
+        return;
+      }
+      searchMatches = Object.values(BUSINESSES).filter(b =>
+        b.symbol.toLowerCase().includes(q) ||
+        b.name.toLowerCase().includes(q) ||
+        b.sector.toLowerCase().includes(q)
+      ).slice(0, 15);
+      searchSelectedIndex = searchMatches.length > 0 ? 0 : -1;
+      renderSearchDropdown();
+    });
+
+    searchInput.addEventListener("keydown", (e) => {
+      if (searchDrop.classList.contains("hidden") || searchMatches.length === 0) return;
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        searchSelectedIndex = (searchSelectedIndex + 1) % searchMatches.length;
+        renderSearchDropdown();
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        searchSelectedIndex = (searchSelectedIndex - 1 + searchMatches.length) % searchMatches.length;
+        renderSearchDropdown();
+      } else if (e.key === "Enter" && searchSelectedIndex >= 0) {
+        e.preventDefault();
+        const chosen = searchMatches[searchSelectedIndex];
+        if (chosen) {
+          selectSymbol(chosen.symbol);
+          searchDrop.classList.add("hidden");
+          searchInput.value = "";
+        }
+      } else if (e.key === "Escape") {
+        searchDrop.classList.add("hidden");
+      }
+    });
+
+    function renderSearchDropdown() {
+      if (searchMatches.length === 0) {
+        searchDrop.innerHTML = `<div class="p-3 text-xs text-center" style="color: var(--text-tertiary)">No matching companies</div>`;
+      } else {
+        searchDrop.innerHTML = searchMatches.map((b, idx) => {
+          const isFav = currentUser().favorites.includes(b.symbol);
+          const highlighted = idx === searchSelectedIndex;
+          const pct = ((b.price - b.open) / b.open) * 100;
+          return `
+            <div onclick="selectSymbol('${b.symbol}'); searchDrop.classList.add('hidden'); searchInput.value='';"
+                 style="background-color: ${highlighted ? 'var(--apple-blue-bg)' : 'transparent'}"
+                 class="flex items-center justify-between px-3 py-2 rounded-xl cursor-pointer gap-2">
+              <div class="flex items-center gap-2.5 min-w-0">
+                <span class="sf-mono font-bold text-xs px-2 py-0.5 rounded-lg shrink-0" style="background-color: var(--bg-fill); color: ${highlighted ? 'var(--apple-blue)' : ''}">${b.symbol}</span>
+                <div class="min-w-0">
+                  <div class="text-xs font-semibold truncate">${b.name}</div>
+                  <div class="text-[10px] truncate" style="color: var(--text-tertiary)">${b.sector}</div>
+                </div>
+              </div>
+              <div class="flex items-center gap-2.5 shrink-0 sf-mono">
+                <div class="text-right">
+                  <div class="text-xs font-semibold">$${b.price.toFixed(2)}</div>
+                  <div class="text-[10px] font-medium" style="color: ${pct >= 0 ? 'var(--apple-green-text)' : 'var(--apple-red-text)'}">${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%</div>
+                </div>
+                <button onclick="event.stopPropagation(); toggleFavorite('${b.symbol}'); renderSearchDropdown();" class="text-sm ${isFav ? 'text-amber-500' : ''}" style="color: ${isFav ? '' : 'var(--text-tertiary)'}">${isFav ? '★' : '☆'}</button>
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+      searchDrop.classList.remove("hidden");
+    }
+
+    function setMarketFilter(mode) {
+      state.marketFilter = mode;
+      saveState();
+      document.getElementById("filterFavBtn").classList.toggle("active", mode === "FAV");
+      document.getElementById("filterAllBtn").classList.toggle("active", mode === "ALL");
+      renderTickerStrip();
+    }
+
+    function setSectorFilter(sector) {
+      state.sectorFilter = sector;
+      if (sector !== "ALL_SECTORS") {
+        state.marketFilter = "ALL";
+        document.getElementById("filterFavBtn").classList.remove("active");
+        document.getElementById("filterAllBtn").classList.add("active");
+      }
+      saveState();
+      renderTickerStrip();
+    }
+
+    function populateSectorDropdown() {
+      const select = document.getElementById("sectorFilterSelect");
+      if (!select) return;
+      const sectors = Array.from(new Set(Object.values(BUSINESSES).map(b => b.sector))).sort();
+      const total = Object.keys(BUSINESSES).length;
+      document.getElementById("allBizCountLabel").textContent = total;
+      select.innerHTML = `<option value="ALL_SECTORS">All Sectors (${total})</option>` +
+        sectors.map(s => {
+          const count = Object.values(BUSINESSES).filter(b => b.sector === s).length;
+          return `<option value="${s}">${s} (${count})</option>`;
+        }).join("");
+      select.value = state.sectorFilter || "ALL_SECTORS";
+    }
+
+    function scrollTickerBar(delta) {
+      const strip = document.getElementById("tickerStrip");
+      if (strip) strip.scrollBy({ left: delta, behavior: "smooth" });
+    }
+
+    function toggleFavorite(symbol) {
+      const favs = currentUser().favorites;
+      const idx = favs.indexOf(symbol);
+      if (idx >= 0) favs.splice(idx, 1);
+      else favs.push(symbol);
+      saveState();
+      renderTickerStrip();
+      updateStockHeader();
+    }
+
+    function selectSymbol(symbol) {
+      if (!BUSINESSES[symbol]) return;
+      state.activeSymbol = symbol;
+      xproState.replayIndex = null;
+      xproState.isPlaying = false;
+      xproState.zoomScale = 1.0;
+      document.getElementById("replayModeBtn").classList.remove("active");
+      document.getElementById("replayStepControls").classList.add("hidden");
+      document.getElementById("toolZoomBtn")?.classList.remove("active");
+      saveState();
+      refreshAllUI();
+
+      // Trigger real live market quote + real live news fetch immediately on selection
+      RealMarketEngine.fetchSymbolChartAndQuote(symbol, state.timeframe, true);
+      if (state.finnhubApiKey) {
+        RealMarketEngine.connectFinnhubSocket(symbol);
+        RealMarketEngine.fetchFinnhubQuote(symbol);
+      }
+      RealNewsEngine.syncSymbolNews(symbol, false);
+    }
+
+    function renderTickerStrip() {
+      const user = currentUser();
+      document.getElementById("favCountLabel").textContent = user.favorites.length;
+      let symbols = state.marketFilter === "FAV"
+        ? Object.keys(BUSINESSES).filter(s => user.favorites.includes(s))
+        : Object.keys(BUSINESSES);
+
+      if (state.sectorFilter && state.sectorFilter !== "ALL_SECTORS") {
+        symbols = symbols.filter(s => BUSINESSES[s].sector === state.sectorFilter);
+      }
+
+      const strip = document.getElementById("tickerStrip");
+      if (symbols.length === 0) {
+        strip.innerHTML = `<span class="text-xs px-2 truncate" style="color: var(--text-tertiary)">No companies in this filter</span>`;
+        return;
+      }
+
+      strip.innerHTML = symbols.map(sym => {
+        const b = BUSINESSES[sym];
+        const diff = b.price - b.open;
+        const pct = (diff / (b.open || 1)) * 100;
+        const active = sym === state.activeSymbol;
+        const pctColor = active ? "#FFFFFF" : (diff >= 0 ? "var(--apple-green-text)" : "var(--apple-red-text)");
+        const subColor = active ? "rgba(255,255,255,0.85)" : "var(--text-secondary)";
+        return `
+          <button onclick="selectSymbol('${sym}')" class="ticker-chip ${active ? 'active' : ''} h-8 px-3 flex items-center gap-1.5 shrink-0 text-xs">
+            <span class="font-bold">${sym}</span>
+            <span class="sf-mono text-[11px]" style="color: ${subColor}">${b.price.toFixed(2)}</span>
+            <span class="sf-mono text-[11px] font-semibold" style="color: ${pctColor}">${diff >= 0 ? '+' : ''}${pct.toFixed(1)}%</span>
+          </button>
+        `;
+      }).join("");
+    }
+
+    const AVATAR_GRADIENTS = [
+      "linear-gradient(135deg, #007AFF, #5856D6)",
+      "linear-gradient(135deg, #34C759, #00C7BE)",
+      "linear-gradient(135deg, #FF9500, #FF3B30)",
+      "linear-gradient(135deg, #AF52DE, #FF2D55)",
+      "linear-gradient(135deg, #32ADE6, #007AFF)"
+    ];
+
+    function updateStockHeader() {
+      const b = BUSINESSES[state.activeSymbol];
+      const isFav = currentUser().favorites.includes(b.symbol);
+      const diff = b.price - b.open;
+      const pct = (diff / (b.open || 1)) * 100;
+
+      const avatar = document.getElementById("activeStockAvatar");
+      avatar.textContent = b.symbol.replace(/[^A-Z]/g, "").slice(0, 2);
+      avatar.style.background = AVATAR_GRADIENTS[hashSeed(b.symbol) % AVATAR_GRADIENTS.length];
+
+      document.getElementById("activeStockSymbol").textContent = b.symbol;
+      const starBtn = document.getElementById("favoriteStarBtn");
+      starBtn.textContent = isFav ? "★" : "☆";
+      starBtn.style.color = isFav ? "#FF9500" : "var(--text-tertiary)";
+
+      document.getElementById("activeStockName").textContent = b.name;
+      document.getElementById("activeStockSector").textContent = b.sector;
+      document.getElementById("activeStockPrice").textContent = `$${b.price.toFixed(b.price < 10 ? 3 : 2)}`;
+
+      const chEl = document.getElementById("activeStockChange");
+      chEl.textContent = `${diff >= 0 ? '+' : '-'}$${Math.abs(diff).toFixed(2)} (${diff >= 0 ? '+' : ''}${pct.toFixed(2)}%)`;
+      chEl.style.color = diff >= 0 ? "var(--apple-green-text)" : "var(--apple-red-text)";
+
+      const tfCandles = getCandlesForSymbolAndTf(b.symbol, state.timeframe);
+      if (tfCandles.length > 0) {
+        const startPx = tfCandles[0].o;
+        const endPx = tfCandles[tfCandles.length - 1].c;
+        const tfPct = ((endPx - startPx) / (startPx || 1)) * 100;
+        const pill = document.getElementById("timeframeReturnPill");
+        pill.textContent = `${state.timeframe}: ${tfPct >= 0 ? '+' : ''}${tfPct.toFixed(2)}%`;
+        pill.style.backgroundColor = tfPct >= 0 ? "var(--apple-green-bg)" : "var(--apple-red-bg)";
+        pill.style.color = tfPct >= 0 ? "var(--apple-green-text)" : "var(--apple-red-text)";
+      }
+
+      if (b.lastSyncTime) {
+        updateLiveStatusPill(b.isRealQuote, b.quoteSource, b.lastSyncTime);
+      }
+    }
+
+    /* ==========================================================================
+       9. EXTRA PROFESSIONAL (12-TOOL), PRO & SIMPLE CHART ENGINE (NO WATERMARK)
+       ========================================================================== */
+    const xproState = {
+      overlays: { ema: true, vwap: true, boll: false, macd: true },
+      activeTool: "crosshair",
+      drawings: {},
+      pendingPoint: null,
+      pendingTextPoint: null,
+      mousePos: null,
+      replayIndex: null,
+      isPlaying: false,
+      zoomScale: 1.0,
+      magnetSnap: false,
+      drawingsLocked: false
+    };
+
+    function setChartTimeframe(tf) {
+      if (!TIMEFRAME_CONFIGS[tf]) return;
+      state.timeframe = tf;
+      xproState.replayIndex = null;
+      xproState.isPlaying = false;
+      xproState.pendingPoint = null;
+      document.getElementById("replayModeBtn").classList.remove("active");
+      document.getElementById("replayStepControls").classList.add("hidden");
+
+      document.querySelectorAll(".tf-btn").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.tf === tf);
+      });
+
+      saveState();
+      updateStockHeader();
+      renderActiveChart();
+
+      // Fetch real candles for this exact interval & range immediately
+      RealMarketEngine.fetchSymbolChartAndQuote(state.activeSymbol, tf, true);
+    }
+
+    function toggleXproOverlay(key) {
+      xproState.overlays[key] = !xproState.overlays[key];
+      const btnMap = {
+        ema: "toggleEmaBtn",
+        vwap: "toggleVwapBtn",
+        boll: "toggleBollBtn",
+        macd: "toggleMacdBtn"
+      };
+      const el = document.getElementById(btnMap[key]);
+      if (el) el.classList.toggle("active", xproState.overlays[key]);
+      renderActiveChart();
+    }
+
+    function selectDrawTool(tool) {
+      xproState.activeTool = tool;
+      xproState.pendingPoint = null;
+      cancelInlineTextNote();
+      document.querySelectorAll(".rail-tool[data-tool]").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.tool === tool);
+      });
+    }
+
+    function toggleChartZoom() {
+      xproState.zoomScale = xproState.zoomScale > 1.0 ? 1.0 : 1.65;
+      document.getElementById("toolZoomBtn")?.classList.toggle("active", xproState.zoomScale > 1.0);
+      renderActiveChart();
+      showAppleBanner(xproState.zoomScale > 1.0 ? "Chart Zoomed (1.65x)" : "Chart Zoom Reset (1.0x)", "Showing focused candle range.");
+    }
+
+    function toggleMagnetSnap() {
+      xproState.magnetSnap = !xproState.magnetSnap;
+      document.getElementById("toolMagnetBtn")?.classList.toggle("active", xproState.magnetSnap);
+      showAppleBanner(xproState.magnetSnap ? "OHLC Magnet Snap On" : "Magnet Snap Off", "Snaps drawing anchors to candle High/Low/Close.");
+    }
+
+    function toggleDrawingsLock() {
+      xproState.drawingsLocked = !xproState.drawingsLocked;
+      document.getElementById("toolLockBtn")?.classList.toggle("active", xproState.drawingsLocked);
+      showAppleBanner(xproState.drawingsLocked ? "Annotations Locked" : "Annotations Unlocked", xproState.drawingsLocked ? "Drawings protected from edits." : "Drawings can now be added or cleared.");
+    }
+
+    function clearAllDrawings() {
+      if (xproState.drawingsLocked) {
+        showAppleBanner("Annotations Locked", "Unlock the padlock tool before clearing drawings.");
+        return;
+      }
+      const key = `${state.activeSymbol}_${state.timeframe}`;
+      xproState.drawings[key] = [];
+      xproState.pendingPoint = null;
+      cancelInlineTextNote();
+      renderActiveChart();
+      showAppleBanner("Drawings Cleared", `Cleared annotations on ${state.activeSymbol} (${state.timeframe})`);
+    }
+
+    function commitInlineTextNote() {
+      const input = document.getElementById("inlineTextNoteInput");
+      const text = input.value.trim();
+      if (text && xproState.pendingTextPoint) {
+        const drawKey = `${state.activeSymbol}_${state.timeframe}`;
+        if (!xproState.drawings[drawKey]) xproState.drawings[drawKey] = [];
+        xproState.drawings[drawKey].push({
+          type: "text",
+          idx: xproState.pendingTextPoint.idx,
+          price: xproState.pendingTextPoint.price,
+          text
+        });
+        renderActiveChart();
+      }
+      cancelInlineTextNote();
+    }
+
+    function cancelInlineTextNote() {
+      xproState.pendingTextPoint = null;
+      const box = document.getElementById("inlineTextNoteBox");
+      if (box) box.classList.add("hidden");
+      const input = document.getElementById("inlineTextNoteInput");
+      if (input) input.value = "";
+    }
+
+    document.getElementById("inlineTextNoteInput").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") { e.preventDefault(); commitInlineTextNote(); }
+      if (e.key === "Escape") { e.preventDefault(); cancelInlineTextNote(); }
+    });
+
+    function toggleReplayMode() {
+      const candles = getVisibleCandlesSlice();
+      const btn = document.getElementById("replayModeBtn");
+      if (xproState.replayIndex === null) {
+        xproState.replayIndex = Math.max(15, Math.floor(candles.length * 0.6));
+        btn.classList.add("active");
+        document.getElementById("replayStepControls").classList.remove("hidden");
+      } else {
+        xproState.replayIndex = null;
+        xproState.isPlaying = false;
+        btn.classList.remove("active");
+        document.getElementById("replayStepControls").classList.add("hidden");
+      }
+      renderActiveChart();
+    }
+
+    function stepReplay(delta) {
+      if (xproState.replayIndex === null) return;
+      const maxLen = getVisibleCandlesSlice().length;
+      xproState.replayIndex = Math.min(maxLen, Math.max(12, xproState.replayIndex + delta));
+      if (xproState.replayIndex >= maxLen) {
+        xproState.isPlaying = false;
+        document.getElementById("replayPlayPauseBtn").textContent = "▶";
+      }
+      renderActiveChart();
+    }
+
+    function toggleReplayAutoPlay() {
+      xproState.isPlaying = !xproState.isPlaying;
+      document.getElementById("replayPlayPauseBtn").textContent = xproState.isPlaying ? "⏸" : "▶";
+    }
+
+    function getVisibleCandlesSlice() {
+      const full = getCandlesForSymbolAndTf(state.activeSymbol, state.timeframe);
+      if (xproState.zoomScale > 1.0 && full.length > 24) {
+        const take = Math.max(24, Math.floor(full.length / xproState.zoomScale));
+        return full.slice(-take);
+      }
+      return full;
+    }
+
+    function computeIndicators(candles) {
+      const closes = candles.map(c => c.c);
+      const ema = (period) => {
+        const k = 2 / (period + 1);
+        const out = [closes[0]];
+        for (let i = 1; i < closes.length; i++) {
+          out.push(closes[i] * k + out[i - 1] * (1 - k));
+        }
+        return out;
+      };
+      const ema9 = ema(9);
+      const ema20 = ema(20);
+      const ema12 = ema(12);
+      const ema26 = ema(26);
+      const macdLine = ema12.map((v, i) => v - ema26[i]);
+      const kSig = 2 / (9 + 1);
+      const signalLine = [macdLine[0]];
+      for (let i = 1; i < macdLine.length; i++) {
+        signalLine.push(macdLine[i] * kSig + signalLine[i - 1] * (1 - kSig));
+      }
+      const hist = macdLine.map((v, i) => v - signalLine[i]);
+
+      const vwap = [];
+      let cumPV = 0;
+      let cumV = 0;
+      for (let i = 0; i < candles.length; i++) {
+        const typical = (candles[i].h + candles[i].l + candles[i].c) / 3;
+        cumPV += typical * candles[i].v;
+        cumV += candles[i].v;
+        vwap.push(cumPV / (cumV || 1));
+      }
+
+      const bollUpper = [];
+      const bollLower = [];
+      for (let i = 0; i < closes.length; i++) {
+        const start = Math.max(0, i - 19);
+        const slice = closes.slice(start, i + 1);
+        const mean = slice.reduce((a, b) => a + b, 0) / slice.length;
+        const variance = slice.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / slice.length;
+        const std = Math.sqrt(variance);
+        bollUpper.push(mean + 2 * std);
+        bollLower.push(mean - 2 * std);
+      }
+
+      return { ema9, ema20, vwap, bollUpper, bollLower, macdLine, signalLine, hist };
+    }
+
+    function getChartPalette() {
+      if (!state.darkMode) {
+        return {
+          bg: "#FFFFFF",
+          subBg: "#F9F9FB",
+          grid: "#F2F2F7",
+          axisBorder: "rgba(0,0,0,0.06)",
+          axisText: "#8E8E93",
+          up: "#34C759",
+          down: "#FF3B30",
+          upVol: "rgba(52, 199, 89, 0.18)",
+          downVol: "rgba(255, 59, 48, 0.18)",
+          ema9: "#007AFF",
+          ema20: "#FF9500",
+          vwap: "#AF52DE",
+          boll: "rgba(50, 173, 230, 0.60)",
+          bollFill: "rgba(50, 173, 230, 0.06)",
+          crosshair: "rgba(142, 142, 147, 0.50)",
+          tagBg: "rgba(0, 122, 255, 0.10)",
+          tagBorder: "rgba(0, 122, 255, 0.25)",
+          tagText: "#007AFF"
+        };
+      }
+      return {
+        bg: "#1C1C1E",
+        subBg: "#141416",
+        grid: "#2C2C2E",
+        axisBorder: "rgba(255,255,255,0.08)",
+        axisText: "#8E8E93",
+        up: "#30D158",
+        down: "#FF453A",
+        upVol: "rgba(48, 209, 88, 0.22)",
+        downVol: "rgba(255, 69, 58, 0.22)",
+        ema9: "#0A84FF",
+        ema20: "#FF9F0A",
+        vwap: "#BF5AF2",
+        boll: "rgba(100, 210, 255, 0.50)",
+        bollFill: "rgba(100, 210, 255, 0.06)",
+        crosshair: "rgba(152, 152, 157, 0.45)",
+        tagBg: "#2C2C2E",
+        tagBorder: "rgba(255,255,255,0.14)",
+        tagText: "#0A84FF"
+      };
+    }
+
+    function renderActiveChart() {
+      if (state.chartMode === "extra") {
+        renderXproChart();
+      } else {
+        renderStandardChart();
+      }
+    }
+
+    function renderStandardChart() {
+      const canvas = document.getElementById("standardChartCanvas");
+      if (!canvas) return;
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      const ctx = canvas.getContext("2d");
+      ctx.scale(dpr, dpr);
+
+      const T = getChartPalette();
+      const W = rect.width;
+      const H = rect.height;
+      const biz = BUSINESSES[state.activeSymbol];
+      const candles = getCandlesForSymbolAndTf(state.activeSymbol, state.timeframe);
+      const isPro = state.chartMode === "pro";
+
+      ctx.fillStyle = T.bg;
+      ctx.fillRect(0, 0, W, H);
+
+      const pad = { top: 14, right: 62, bottom: 24, left: 10 };
+      const plotW = W - pad.left - pad.right;
+      const plotH = H - pad.top - pad.bottom;
+
+      const highs = candles.map(c => c.h);
+      const lows = candles.map(c => c.l);
+      const maxP = Math.max(...highs) * 1.003;
+      const minP = Math.min(...lows) * 0.997;
+      const range = maxP - minP || 1;
+      const yOf = (p) => pad.top + ((maxP - p) / range) * plotH;
+      const xOf = (i) => pad.left + (i / (candles.length - 1)) * plotW;
+
+      ctx.strokeStyle = T.grid;
+      ctx.lineWidth = 1;
+      for (let g = 0; g <= 4; g++) {
+        const y = pad.top + (plotH / 4) * g;
+        ctx.beginPath();
+        ctx.moveTo(pad.left, y);
+        ctx.lineTo(W - pad.right, y);
+        ctx.stroke();
+
+        const priceVal = maxP - (range / 4) * g;
+        ctx.fillStyle = T.axisText;
+        ctx.font = "10px 'SF Mono', 'JetBrains Mono', monospace";
+        ctx.fillText(priceVal.toFixed(2), W - pad.right + 6, y + 3);
+      }
+
+      const labelCount = 5;
+      for (let k = 0; k < labelCount; k++) {
+        const idx = Math.floor((k / (labelCount - 1)) * (candles.length - 1));
+        const x = xOf(idx);
+        const lbl = formatCandleTimestamp(candles[idx].t, state.timeframe);
+        ctx.fillStyle = T.axisText;
+        ctx.font = "10px 'SF Mono', 'JetBrains Mono', monospace";
+        ctx.fillText(lbl, Math.max(4, Math.min(W - pad.right - 56, x - 20)), H - 6);
+      }
+
+      if (!isPro) {
+        const up = candles[candles.length - 1].c >= candles[0].o;
+        const strokeCol = up ? T.up : T.down;
+        const grad = ctx.createLinearGradient(0, pad.top, 0, H - pad.bottom);
+        grad.addColorStop(0, up ? T.upVol : T.downVol);
+        grad.addColorStop(1, "rgba(0,0,0,0)");
+
+        ctx.beginPath();
+        candles.forEach((c, i) => {
+          const x = xOf(i), y = yOf(c.c);
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        });
+        ctx.strokeStyle = strokeCol;
+        ctx.lineWidth = 2.2;
+        ctx.stroke();
+
+        ctx.lineTo(xOf(candles.length - 1), H - pad.bottom);
+        ctx.lineTo(xOf(0), H - pad.bottom);
+        ctx.closePath();
+        ctx.fillStyle = grad;
+        ctx.fill();
+      } else {
+        const { ema9, ema20 } = computeIndicators(candles);
+        const maxV = Math.max(...candles.map(c => c.v)) || 1;
+        const cw = Math.max(2.5, (plotW / candles.length) * 0.62);
+
+        candles.forEach((c, i) => {
+          const x = xOf(i);
+          const isUp = c.c >= c.o;
+          const col = isUp ? T.up : T.down;
+
+          const vh = (c.v / maxV) * (plotH * 0.2);
+          ctx.fillStyle = isUp ? T.upVol : T.downVol;
+          ctx.fillRect(x - cw / 2, H - pad.bottom - vh, cw, vh);
+
+          ctx.strokeStyle = col;
+          ctx.lineWidth = 1.2;
+          ctx.beginPath();
+          ctx.moveTo(x, yOf(c.h));
+          ctx.lineTo(x, yOf(c.l));
+          ctx.stroke();
+
+          const topY = yOf(Math.max(c.o, c.c));
+          const botY = yOf(Math.min(c.o, c.c));
+          ctx.fillStyle = col;
+          ctx.fillRect(x - cw / 2, topY, cw, Math.max(1.5, botY - topY));
+        });
+
+        [
+          { arr: ema9, color: T.ema9 },
+          { arr: ema20, color: T.ema20 }
+        ].forEach(line => {
+          ctx.beginPath();
+          line.arr.forEach((val, i) => {
+            const x = xOf(i), y = yOf(val);
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          });
+          ctx.strokeStyle = line.color;
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        });
+
+        updateProDepthAndMetrics(biz);
+      }
+    }
+
+    function updateProDepthAndMetrics(biz) {
+      const p = biz.price;
+      const rows = [
+        { bidSz: 420, bid: (p - 0.01).toFixed(2), ask: (p + 0.01).toFixed(2), askSz: 310 },
+        { bidSz: 890, bid: (p - 0.03).toFixed(2), ask: (p + 0.03).toFixed(2), askSz: 640 },
+        { bidSz: 1250, bid: (p - 0.06).toFixed(2), ask: (p + 0.06).toFixed(2), askSz: 980 }
+      ];
+      document.getElementById("orderBookRows").innerHTML = rows.map(r => `
+        <div class="grid grid-cols-4 text-right">
+          <span style="color: var(--text-tertiary)">${r.bidSz}</span>
+          <span class="font-semibold" style="color: var(--apple-green-text)">${r.bid}</span>
+          <span class="font-semibold" style="color: var(--apple-red-text)">${r.ask}</span>
+          <span style="color: var(--text-tertiary)">${r.askSz}</span>
+        </div>
+      `).join("");
+
+      document.getElementById("proFundamentalsGrid").innerHTML = `
+        <div><span style="color: var(--text-tertiary)">MKT CAP:</span> ${biz.mktCap}</div>
+        <div><span style="color: var(--text-tertiary)">P/E:</span> ${biz.peRatio}</div>
+        <div><span style="color: var(--text-tertiary)">24H VOL:</span> ${biz.volume}</div>
+        <div><span style="color: var(--text-tertiary)">PREV:</span> $${biz.open.toFixed(2)}</div>
+      `;
+    }
+
+    // Extra Professional Institutional Quant Chart Renderer (Zero Background Watermark)
+    function renderXproChart() {
+      const canvas = document.getElementById("xproChartCanvas");
+      if (!canvas) return;
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      const ctx = canvas.getContext("2d");
+      ctx.scale(dpr, dpr);
+
+      const T = getChartPalette();
+      const W = rect.width;
+      const H = rect.height;
+      const tf = state.timeframe;
+      const baseCandles = getVisibleCandlesSlice();
+      const visibleCount = xproState.replayIndex !== null ? xproState.replayIndex : baseCandles.length;
+      const candles = baseCandles.slice(0, visibleCount);
+      if (candles.length === 0) return;
+
+      const ind = computeIndicators(candles);
+
+      // Clean Apple Light/Dark Canvas (Zero Background Watermark)
+      ctx.fillStyle = T.bg;
+      ctx.fillRect(0, 0, W, H);
+
+      const rightAxisW = 64;
+      const bottomAxisH = 22;
+      const showMacd = xproState.overlays.macd;
+      const macdH = showMacd ? 82 : 0;
+      const gapH = showMacd ? 6 : 0;
+      const mainTop = 38;
+      const mainH = H - mainTop - macdH - gapH - bottomAxisH;
+      const macdTop = mainTop + mainH + gapH;
+      const plotW = W - rightAxisW;
+
+      const highs = candles.map(c => c.h);
+      const lows = candles.map(c => c.l);
+      let maxP = Math.max(...highs, ...(xproState.overlays.boll ? ind.bollUpper : []));
+      let minP = Math.min(...lows, ...(xproState.overlays.boll ? ind.bollLower : []));
+      const padRange = (maxP - minP) * 0.12 || 0.1;
+      maxP += padRange;
+      minP -= padRange;
+      const range = maxP - minP || 1;
+
+      const yOf = (p) => mainTop + ((maxP - p) / range) * mainH;
+      const pOf = (y) => maxP - ((y - mainTop) / mainH) * range;
+      const stepX = plotW / candles.length;
+      const xOf = (i) => i * stepX + stepX * 0.5;
+
+      // Subtle Gridlines + Right Price Axis
+      ctx.strokeStyle = T.grid;
+      ctx.lineWidth = 1;
+      for (let g = 0; g <= 5; g++) {
+        const y = mainTop + (mainH / 5) * g;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(plotW, y);
+        ctx.stroke();
+
+        const val = maxP - (range / 5) * g;
+        ctx.fillStyle = T.axisText;
+        ctx.font = "10px 'SF Mono', 'JetBrains Mono', monospace";
+        ctx.fillText(val.toFixed(val < 10 ? 3 : 2), plotW + 6, y + 3);
+      }
+
+      // Vertical Gridlines + Timeframe-Specific X-Axis Labels
+      const tickCount = Math.min(6, candles.length);
+      for (let k = 0; k < tickCount; k++) {
+        const idx = Math.floor((k / (tickCount - 1)) * (candles.length - 1));
+        const x = xOf(idx);
+        ctx.beginPath();
+        ctx.moveTo(x, mainTop);
+        ctx.lineTo(x, macdTop + macdH);
+        ctx.stroke();
+
+        const lbl = formatCandleTimestamp(candles[idx].t, tf);
+        ctx.fillStyle = T.axisText;
+        ctx.font = "10px 'SF Mono', 'JetBrains Mono', monospace";
+        const lblW = ctx.measureText(lbl).width;
+        ctx.fillText(lbl, Math.max(4, Math.min(plotW - lblW - 4, x - lblW / 2)), H - 6);
+      }
+
+      // Right Axis Divider
+      ctx.strokeStyle = T.axisBorder;
+      ctx.beginPath();
+      ctx.moveTo(plotW, 0);
+      ctx.lineTo(plotW, H - bottomAxisH);
+      ctx.stroke();
+
+      // Bollinger Bands
+      if (xproState.overlays.boll) {
+        ctx.beginPath();
+        ind.bollUpper.forEach((v, i) => {
+          const x = xOf(i), y = yOf(v);
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        });
+        for (let i = ind.bollLower.length - 1; i >= 0; i--) {
+          ctx.lineTo(xOf(i), yOf(ind.bollLower[i]));
+        }
+        ctx.closePath();
+        ctx.fillStyle = T.bollFill;
+        ctx.fill();
+
+        [ind.bollUpper, ind.bollLower].forEach(arr => {
+          ctx.beginPath();
+          arr.forEach((v, i) => {
+            const x = xOf(i), y = yOf(v);
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          });
+          ctx.strokeStyle = T.boll;
+          ctx.lineWidth = 1.1;
+          ctx.stroke();
+        });
+      }
+
+      // Volume Histogram
+      const maxV = Math.max(...candles.map(c => c.v)) || 1;
+      const cw = Math.max(2.5, stepX * 0.62);
+      candles.forEach((c, i) => {
+        const x = xOf(i);
+        const up = c.c >= c.o;
+        const vh = (c.v / maxV) * (mainH * 0.16);
+        ctx.fillStyle = up ? T.upVol : T.downVol;
+        ctx.fillRect(x - cw / 2, mainTop + mainH - vh, cw, vh);
+      });
+
+      // Candlesticks
+      candles.forEach((c, i) => {
+        const x = xOf(i);
+        const up = c.c >= c.o;
+        const col = up ? T.up : T.down;
+
+        ctx.strokeStyle = col;
+        ctx.lineWidth = 1.25;
+        ctx.beginPath();
+        ctx.moveTo(x, yOf(c.h));
+        ctx.lineTo(x, yOf(c.l));
+        ctx.stroke();
+
+        const topY = yOf(Math.max(c.o, c.c));
+        const botY = yOf(Math.min(c.o, c.c));
+        ctx.fillStyle = col;
+        ctx.fillRect(x - cw / 2, topY, cw, Math.max(1.5, botY - topY));
+      });
+
+      // EMA 9 & EMA 20 Overlays
+      if (xproState.overlays.ema) {
+        [
+          { arr: ind.ema9, color: T.ema9 },
+          { arr: ind.ema20, color: T.ema20 }
+        ].forEach(l => {
+          ctx.beginPath();
+          l.arr.forEach((v, i) => {
+            const x = xOf(i), y = yOf(v);
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          });
+          ctx.strokeStyle = l.color;
+          ctx.lineWidth = 1.45;
+          ctx.stroke();
+        });
+      }
+
+      // VWAP Overlay
+      if (xproState.overlays.vwap) {
+        ctx.beginPath();
+        ind.vwap.forEach((v, i) => {
+          const x = xOf(i), y = yOf(v);
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        });
+        ctx.strokeStyle = T.vwap;
+        ctx.setLineDash([4, 3]);
+        ctx.lineWidth = 1.3;
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      // Live Price Line & Right Axis Pill
+      const last = candles[candles.length - 1];
+      const lastIdx = candles.length - 1;
+      const lastColor = last.c >= last.o ? T.up : T.down;
+
+      ctx.strokeStyle = lastColor;
+      ctx.globalAlpha = 0.45;
+      ctx.setLineDash([2, 2]);
+      ctx.beginPath();
+      ctx.moveTo(0, yOf(last.c));
+      ctx.lineTo(plotW, yOf(last.c));
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.globalAlpha = 1;
+
+      const tagY = Math.min(mainTop + mainH - 8, Math.max(mainTop + 8, yOf(last.c)));
+      ctx.fillStyle = lastColor;
+      ctx.beginPath();
+      ctx.roundRect(plotW + 3, tagY - 8, rightAxisW - 6, 16, 5);
+      ctx.fill();
+      ctx.fillStyle = "#FFFFFF";
+      ctx.font = "bold 10px 'SF Mono', 'JetBrains Mono', monospace";
+      ctx.fillText(last.c.toFixed(last.c < 10 ? 3 : 2), plotW + 7, tagY + 3);
+
+      // User Drawings Layer (Scoped per Symbol + Timeframe)
+      const drawKey = `${state.activeSymbol}_${tf}`;
+      const list = xproState.drawings[drawKey] || [];
+      list.forEach(d => renderSingleDrawing(ctx, d, xOf, yOf, plotW, T));
+      if (xproState.pendingPoint && xproState.mousePos) {
+        renderSingleDrawing(ctx, {
+          type: xproState.activeTool,
+          p1: xproState.pendingPoint,
+          p2: { idx: Math.round(xproState.mousePos.x / stepX), price: pOf(xproState.mousePos.y) }
+        }, xOf, yOf, plotW, T, true);
+      }
+
+      // Synchronized Bottom MACD (12, 26, 9) Sub-Pane
+      if (showMacd) {
+        ctx.fillStyle = T.subBg;
+        ctx.fillRect(0, macdTop, plotW, macdH);
+        ctx.strokeStyle = T.axisBorder;
+        ctx.beginPath();
+        ctx.moveTo(0, macdTop);
+        ctx.lineTo(plotW, macdTop);
+        ctx.moveTo(0, macdTop + macdH);
+        ctx.lineTo(plotW, macdTop + macdH);
+        ctx.stroke();
+
+        const maxAbsM = Math.max(
+          ...ind.macdLine.map(Math.abs),
+          ...ind.signalLine.map(Math.abs),
+          ...ind.hist.map(Math.abs),
+          0.02
+        ) * 1.25;
+        const mZeroY = macdTop + macdH / 2;
+        const mY = (v) => mZeroY - (v / maxAbsM) * (macdH * 0.44);
+
+        ctx.strokeStyle = T.grid;
+        ctx.beginPath();
+        ctx.moveTo(0, mZeroY);
+        ctx.lineTo(plotW, mZeroY);
+        ctx.stroke();
+
+        ind.hist.forEach((h, i) => {
+          const x = xOf(i);
+          const y = mY(h);
+          ctx.fillStyle = h >= 0 ? T.upVol : T.downVol;
+          ctx.fillRect(x - cw / 2, Math.min(mZeroY, y), cw, Math.max(1, Math.abs(y - mZeroY)));
+        });
+
+        [
+          { arr: ind.macdLine, color: T.ema9 },
+          { arr: ind.signalLine, color: T.ema20 }
+        ].forEach(line => {
+          ctx.beginPath();
+          line.arr.forEach((v, i) => {
+            const x = xOf(i), y = mY(v);
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          });
+          ctx.strokeStyle = line.color;
+          ctx.lineWidth = 1.25;
+          ctx.stroke();
+        });
+
+        ctx.fillStyle = T.axisText;
+        ctx.font = "600 10px 'SF Mono', 'JetBrains Mono', monospace";
+        ctx.fillText(`MACD (12, 26, 9) • ${tf}`, 8, macdTop + 12);
+
+        const curMacd = ind.macdLine[lastIdx];
+        ctx.fillStyle = T.ema9;
+        ctx.beginPath();
+        ctx.roundRect(plotW + 3, mY(curMacd) - 7, rightAxisW - 6, 14, 4);
+        ctx.fill();
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fillText(curMacd.toFixed(2), plotW + 7, mY(curMacd) + 3);
+      }
+
+      // Hover Crosshair with Dynamic Timeframe Timestamp Tag
+      let hoveredIdx = lastIdx;
+      if (xproState.mousePos && xproState.mousePos.x < plotW && xproState.mousePos.y < macdTop + macdH) {
+        const mx = xproState.mousePos.x;
+        const my = xproState.mousePos.y;
+        hoveredIdx = Math.min(candles.length - 1, Math.max(0, Math.floor(mx / stepX)));
+
+        ctx.strokeStyle = T.crosshair;
+        ctx.setLineDash([3, 3]);
+        ctx.beginPath();
+        ctx.moveTo(mx, mainTop);
+        ctx.lineTo(mx, macdTop + macdH);
+        ctx.moveTo(0, my);
+        ctx.lineTo(plotW, my);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        if (my >= mainTop && my <= mainTop + mainH) {
+          const hp = pOf(my);
+          ctx.fillStyle = T.tagBg;
+          ctx.strokeStyle = T.tagBorder;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.roundRect(plotW + 3, my - 8, rightAxisW - 6, 16, 5);
+          ctx.fill();
+          ctx.stroke();
+          ctx.fillStyle = T.tagText;
+          ctx.font = "600 10px 'SF Mono', 'JetBrains Mono', monospace";
+          ctx.fillText(hp.toFixed(hp < 10 ? 3 : 2), plotW + 7, my + 3);
+        }
+
+        const timeStr = formatCandleTimestamp(candles[hoveredIdx].t, tf);
+        ctx.font = "600 9px 'SF Mono', 'JetBrains Mono', monospace";
+        const tagW = Math.max(40, ctx.measureText(timeStr).width + 10);
+        const tagX = Math.max(2, Math.min(plotW - tagW, mx - tagW / 2));
+        ctx.fillStyle = T.tagBg;
+        ctx.strokeStyle = T.tagBorder;
+        ctx.beginPath();
+        ctx.roundRect(tagX, H - 18, tagW, 15, 4);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = T.tagText;
+        ctx.fillText(timeStr, tagX + 5, H - 7);
+      }
+
+      // Update Top-Left Telemetry HUD
+      const hc = candles[hoveredIdx];
+      document.getElementById("hudTfTag").textContent = tf;
+      document.getElementById("hudO").textContent = hc.o.toFixed(2);
+      document.getElementById("hudH").textContent = hc.h.toFixed(2);
+      document.getElementById("hudL").textContent = hc.l.toFixed(2);
+      document.getElementById("hudC").textContent = hc.c.toFixed(2);
+      document.getElementById("hudV").textContent = hc.v >= 1000 ? `${(hc.v / 1000).toFixed(1)}K` : hc.v;
+      document.getElementById("hudEma9").textContent = ind.ema9[hoveredIdx].toFixed(2);
+      document.getElementById("hudEma20").textContent = ind.ema20[hoveredIdx].toFixed(2);
+      document.getElementById("hudVwap").textContent = ind.vwap[hoveredIdx].toFixed(2);
+      document.getElementById("hudMacd").textContent = ind.macdLine[hoveredIdx].toFixed(2);
+    }
+
+    function renderSingleDrawing(ctx, d, xOf, yOf, plotW, T, isPreview = false) {
+      ctx.save();
+      if (isPreview) ctx.setLineDash([4, 4]);
+      if (d.type === "hline") {
+        const y = yOf(d.price);
+        ctx.strokeStyle = T.ema9;
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(plotW, y);
+        ctx.stroke();
+        ctx.fillStyle = T.ema9;
+        ctx.font = "600 10px 'SF Mono', 'JetBrains Mono', monospace";
+        ctx.fillText(`${d.price.toFixed(2)}`, 8, y - 4);
+      } else if (d.type === "trendline" && d.p1 && d.p2) {
+        ctx.strokeStyle = T.ema20;
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        ctx.moveTo(xOf(d.p1.idx), yOf(d.p1.price));
+        ctx.lineTo(xOf(d.p2.idx), yOf(d.p2.price));
+        ctx.stroke();
+      } else if (d.type === "fib" && d.p1 && d.p2) {
+        const levels = [0, 0.236, 0.382, 0.5, 0.618, 1];
+        const x1 = Math.min(xOf(d.p1.idx), xOf(d.p2.idx));
+        const x2 = Math.max(xOf(d.p1.idx), xOf(d.p2.idx), x1 + 80);
+        levels.forEach(lvl => {
+          const p = d.p1.price + (d.p2.price - d.p1.price) * lvl;
+          const y = yOf(p);
+          ctx.strokeStyle = T.vwap;
+          ctx.globalAlpha = 0.72;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(x1, y);
+          ctx.lineTo(x2, y);
+          ctx.stroke();
+          ctx.globalAlpha = 1;
+          ctx.fillStyle = T.vwap;
+          ctx.font = "9px 'SF Mono', 'JetBrains Mono', monospace";
+          ctx.fillText(`${(lvl * 100).toFixed(1)}% (${p.toFixed(2)})`, x1 + 4, y - 2);
+        });
+      } else if (d.type === "ruler" && d.p1 && d.p2) {
+        const x1 = xOf(d.p1.idx), y1 = yOf(d.p1.price);
+        const x2 = xOf(d.p2.idx), y2 = yOf(d.p2.price);
+        const diff = d.p2.price - d.p1.price;
+        const pct = (diff / d.p1.price) * 100;
+        ctx.fillStyle = diff >= 0 ? T.upVol : T.downVol;
+        ctx.strokeStyle = diff >= 0 ? T.up : T.down;
+        ctx.fillRect(Math.min(x1, x2), Math.min(y1, y2), Math.abs(x2 - x1), Math.abs(y2 - y1));
+        ctx.strokeRect(Math.min(x1, x2), Math.min(y1, y2), Math.abs(x2 - x1), Math.abs(y2 - y1));
+        ctx.fillStyle = diff >= 0 ? T.up : T.down;
+        ctx.font = "600 10px 'SF Mono', 'JetBrains Mono', monospace";
+        ctx.fillText(`${diff >= 0 ? '+' : ''}${diff.toFixed(2)} (${pct.toFixed(2)}%)`, Math.min(x1, x2) + 6, Math.min(y1, y2) + 14);
+      } else if (d.type === "brush" && d.points && d.points.length > 1) {
+        ctx.strokeStyle = T.ema9;
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        d.points.forEach((pt, idx) => {
+          if (idx === 0) ctx.moveTo(xOf(pt.idx), yOf(pt.price));
+          else ctx.lineTo(xOf(pt.idx), yOf(pt.price));
+        });
+        ctx.stroke();
+      } else if (d.type === "marker") {
+        const x = xOf(d.idx), y = yOf(d.price);
+        ctx.fillStyle = T.ema20;
+        ctx.beginPath();
+        ctx.arc(x, y, 4.5, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (d.type === "text" && d.text) {
+        const x = xOf(d.idx), y = yOf(d.price);
+        ctx.font = "600 10px -apple-system, BlinkMacSystemFont, sans-serif";
+        const tw = ctx.measureText(d.text).width + 12;
+        ctx.fillStyle = T.tagBg;
+        ctx.strokeStyle = T.tagBorder;
+        ctx.beginPath();
+        ctx.roundRect(x - 4, y - 14, tw, 18, 6);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = T.tagText;
+        ctx.fillText(d.text, x + 2, y - 2);
+      }
+      ctx.restore();
+    }
+
+    const xproCanvas = document.getElementById("xproChartCanvas");
+    let isBrushing = false;
+
+    function getChartCoordsFromEvent(e) {
+      const rect = xproCanvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const candles = getVisibleCandlesSlice();
+      const plotW = rect.width - 64;
+      const mainTop = 38;
+      const macdH = xproState.overlays.macd ? 82 : 0;
+      const gapH = xproState.overlays.macd ? 6 : 0;
+      const mainH = rect.height - mainTop - macdH - gapH - 22;
+      const highs = candles.map(c => c.h);
+      const lows = candles.map(c => c.l);
+      let maxP = Math.max(...highs);
+      let minP = Math.min(...lows);
+      const padRange = (maxP - minP) * 0.12 || 0.1;
+      maxP += padRange;
+      minP -= padRange;
+      const idx = Math.min(candles.length - 1, Math.max(0, Math.floor((x / plotW) * candles.length)));
+      let price = maxP - ((y - mainTop) / mainH) * (maxP - minP);
+
+      // Apply OHLC Magnet Snap if enabled
+      if (xproState.magnetSnap && candles[idx]) {
+        const c = candles[idx];
+        const candidates = [c.o, c.h, c.l, c.c];
+        price = candidates.reduce((best, val) => Math.abs(val - price) < Math.abs(best - price) ? val : best, candidates[0]);
+      }
+
+      return { x, y, idx, price };
+    }
+
+    xproCanvas.addEventListener("mousemove", (e) => {
+      const pt = getChartCoordsFromEvent(e);
+      xproState.mousePos = { x: pt.x, y: pt.y };
+      if (isBrushing && !xproState.drawingsLocked) {
+        const drawKey = `${state.activeSymbol}_${state.timeframe}`;
+        const list = xproState.drawings[drawKey] || [];
+        const cur = list[list.length - 1];
+        if (cur && cur.type === "brush") cur.points.push({ idx: pt.idx, price: pt.price });
+      }
+      renderXproChart();
+    });
+
+    xproCanvas.addEventListener("mouseleave", () => {
+      xproState.mousePos = null;
+      isBrushing = false;
+      renderXproChart();
+    });
+
+    xproCanvas.addEventListener("mousedown", (e) => {
+      if (xproState.activeTool === "crosshair") return;
+      if (xproState.drawingsLocked) {
+        showAppleBanner("Annotations Locked", "Unlock the padlock tool to add new drawings.");
+        return;
+      }
+      const pt = getChartCoordsFromEvent(e);
+      const drawKey = `${state.activeSymbol}_${state.timeframe}`;
+      if (!xproState.drawings[drawKey]) xproState.drawings[drawKey] = [];
+      const list = xproState.drawings[drawKey];
+
+      if (xproState.activeTool === "hline") {
+        list.push({ type: "hline", price: pt.price });
+      } else if (xproState.activeTool === "marker") {
+        list.push({ type: "marker", idx: pt.idx, price: pt.price });
+      } else if (xproState.activeTool === "text") {
+        xproState.pendingTextPoint = { idx: pt.idx, price: pt.price };
+        const box = document.getElementById("inlineTextNoteBox");
+        box.style.left = `${Math.max(12, Math.min(xproCanvas.clientWidth - 230, pt.x))}px`;
+        box.style.top = `${Math.max(44, Math.min(xproCanvas.clientHeight - 48, pt.y))}px`;
+        box.classList.remove("hidden");
+        setTimeout(() => document.getElementById("inlineTextNoteInput").focus(), 10);
+      } else if (xproState.activeTool === "brush") {
+        isBrushing = true;
+        list.push({ type: "brush", points: [{ idx: pt.idx, price: pt.price }] });
+      } else if (["trendline", "fib", "ruler"].includes(xproState.activeTool)) {
+        if (!xproState.pendingPoint) {
+          xproState.pendingPoint = { idx: pt.idx, price: pt.price };
+        } else {
+          list.push({ type: xproState.activeTool, p1: xproState.pendingPoint, p2: { idx: pt.idx, price: pt.price } });
+          xproState.pendingPoint = null;
+        }
+      }
+      renderXproChart();
+    });
+
+    window.addEventListener("mouseup", () => { isBrushing = false; });
+
+    /* ==========================================================================
+       10. PAPER TRADING ORDER TICKET & PORTFOLIO TABS
+       ========================================================================== */
+    function setOrderSide(side) {
+      state.orderSide = side;
+      const isBuy = side === "BUY";
+      const buyBtn = document.getElementById("sideBuyBtn");
+      const sellBtn = document.getElementById("sideSellBtn");
+
+      buyBtn.classList.toggle("active", isBuy);
+      buyBtn.style.color = isBuy ? "var(--apple-green-text)" : "";
+
+      sellBtn.classList.toggle("active", !isBuy);
+      sellBtn.style.color = !isBuy ? "var(--apple-red-text)" : "";
+
+      const sub = document.getElementById("submitOrderBtn");
+      sub.textContent = `${isBuy ? 'Buy' : 'Sell'} ${state.activeSymbol}`;
+      sub.style.backgroundColor = isBuy ? "var(--apple-green)" : "var(--apple-red)";
+      updateOrderEstimate();
+    }
+
+    function setOrderType(type) {
+      state.orderType = type;
+      document.getElementById("orderTypeMarketBtn").classList.toggle("active", type === "MARKET");
+      document.getElementById("orderTypeLimitBtn").classList.toggle("active", type === "LIMIT");
+
+      const wrap = document.getElementById("limitPriceFieldWrap");
+      wrap.classList.toggle("hidden", type === "MARKET");
+      if (type === "LIMIT") {
+        document.getElementById("limitPriceInput").value = BUSINESSES[state.activeSymbol].price.toFixed(2);
+      }
+      updateOrderEstimate();
+    }
+
+    function setOrderUnit(unit) {
+      state.orderUnit = unit;
+      const shBtn = document.getElementById("unitSharesBtn");
+      const crBtn = document.getElementById("unitCreditsBtn");
+      shBtn.style.color = unit === "SHARES" ? "var(--apple-blue)" : "var(--text-tertiary)";
+      shBtn.style.fontWeight = unit === "SHARES" ? "600" : "500";
+      crBtn.style.color = unit === "CREDITS" ? "var(--apple-blue)" : "var(--text-tertiary)";
+      crBtn.style.fontWeight = unit === "CREDITS" ? "600" : "500";
+      updateOrderEstimate();
+    }
+
+    function setQuickAllocation(fraction) {
+      const u = currentUser();
+      const b = BUSINESSES[state.activeSymbol];
+      const px = state.orderType === "LIMIT" ? (parseFloat(document.getElementById("limitPriceInput").value) || b.price) : b.price;
+
+      if (state.orderSide === "BUY") {
+        const crBudget = Math.floor(u.credits * fraction * 100) / 100;
+        if (state.orderUnit === "CREDITS") {
+          document.getElementById("orderQtyInput").value = Math.max(1, crBudget);
+        } else {
+          const sh = Math.floor((crBudget / px) * 100) / 100;
+          document.getElementById("orderQtyInput").value = Math.max(0.01, sh);
+        }
+      } else {
+        const held = u.holdings[state.activeSymbol]?.shares || 0;
+        const sh = Math.floor(held * fraction * 100) / 100;
+        if (state.orderUnit === "CREDITS") {
+          document.getElementById("orderQtyInput").value = +(sh * px).toFixed(2);
+        } else {
+          document.getElementById("orderQtyInput").value = sh || 1;
+        }
+      }
+      updateOrderEstimate();
+    }
+
+    function getComputedShareQty() {
+      const b = BUSINESSES[state.activeSymbol];
+      const rawVal = Math.max(0, parseFloat(document.getElementById("orderQtyInput").value) || 0);
+      const px = state.orderType === "LIMIT" ? (parseFloat(document.getElementById("limitPriceInput").value) || b.price) : b.price;
+      if (state.orderUnit === "CREDITS") {
+        return +(rawVal / (px || 1)).toFixed(4);
+      }
+      return rawVal;
+    }
+
+    function updateOrderEstimate() {
+      const b = BUSINESSES[state.activeSymbol];
+      const px = state.orderType === "LIMIT" ? (parseFloat(document.getElementById("limitPriceInput").value) || b.price) : b.price;
+      const shares = getComputedShareQty();
+      const totalCr = shares * px;
+      document.getElementById("orderEstTotal").textContent = state.orderUnit === "CREDITS"
+        ? `${shares.toFixed(2)} sh (${totalCr.toFixed(2)} CR)`
+        : `${totalCr.toFixed(2)} CR`;
+    }
+
+    function executeOrder() {
+      const u = currentUser();
+      const b = BUSINESSES[state.activeSymbol];
+      const qty = getComputedShareQty();
+      if (!qty || qty <= 0) {
+        showAppleBanner("Invalid Amount", "Enter a valid share or credit quantity.");
+        return;
+      }
+
+      if (state.orderType === "LIMIT") {
+        const target = parseFloat(document.getElementById("limitPriceInput").value);
+        if (!target || target <= 0) return;
+        u.limitOrders.unshift({
+          id: "ord_" + Date.now(),
+          symbol: b.symbol,
+          side: state.orderSide,
+          shares: qty,
+          targetPrice: target,
+          createdAt: new Date().toLocaleTimeString()
+        });
+        saveState();
+        renderBottomTab();
+        showAppleBanner("Limit Order Queued", `${state.orderSide} ${qty.toFixed(2)} ${b.symbol} @ $${target.toFixed(2)}`);
+        return;
+      }
+
+      fillInstantOrder(u, b.symbol, state.orderSide, qty, b.price);
+    }
+
+    function fillInstantOrder(u, symbol, side, qty, execPrice) {
+      const cost = +(qty * execPrice).toFixed(2);
+      if (side === "BUY") {
+        if (u.credits < cost) {
+          showAppleBanner("Insufficient Credits", `Required ${cost.toFixed(2)} CR (Available ${u.credits.toFixed(2)} CR)`);
+          return false;
+        }
+        u.credits = +(u.credits - cost).toFixed(2);
+        const cur = u.holdings[symbol] || { shares: 0, avgPrice: 0 };
+        const newTotalShares = +(cur.shares + qty).toFixed(4);
+        const newAvg = ((cur.shares * cur.avgPrice) + cost) / newTotalShares;
+        u.holdings[symbol] = { shares: newTotalShares, avgPrice: +newAvg.toFixed(2) };
+      } else {
+        const cur = u.holdings[symbol];
+        if (!cur || cur.shares < qty) {
+          showAppleBanner("Insufficient Position", `You hold ${cur ? cur.shares : 0} shares of ${symbol}`);
+          return false;
+        }
+        u.credits = +(u.credits + cost).toFixed(2);
+        cur.shares = +(cur.shares - qty).toFixed(4);
+        if (cur.shares <= 0.0001) delete u.holdings[symbol];
+      }
+
+      u.history.unshift({
+        id: "tx_" + Date.now(),
+        symbol,
+        side,
+        shares: +qty.toFixed(4),
+        price: execPrice,
+        total: cost,
+        time: new Date().toLocaleTimeString()
+      });
+
+      saveState();
+      updateLiveValues();
+      renderBottomTab();
+      showAppleBanner("Order Executed", `${side} ${qty.toFixed(2)} ${symbol} @ $${execPrice.toFixed(2)}`);
+      return true;
+    }
+
+    function closePosition(symbol) {
+      const u = currentUser();
+      const pos = u.holdings[symbol];
+      const biz = BUSINESSES[symbol];
+      if (!pos || !biz) return;
+      fillInstantOrder(u, symbol, "SELL", pos.shares, biz.price);
+    }
+
+    function setBottomTab(tab) {
+      state.bottomTab = tab;
+      document.querySelectorAll(".btab-btn").forEach(b => b.classList.toggle("active", b.dataset.btab === tab));
+      renderBottomTab();
+    }
+
+    function renderBottomTab() {
+      const u = currentUser();
+      const box = document.getElementById("bottomTabContent");
+
+      if (state.bottomTab === "positions") {
+        const entries = Object.entries(u.holdings);
+        if (entries.length === 0) {
+          box.innerHTML = `<div class="py-8 text-center text-xs" style="color: var(--text-tertiary)">No open positions. Place a Buy order using your 10,000.00 CR balance.</div>`;
+          return;
+        }
+        box.innerHTML = `
+          <table class="w-full text-left border-collapse sf-mono">
+            <thead>
+              <tr class="text-[10px] uppercase divider-b" style="color: var(--text-tertiary)">
+                <th class="py-1.5 font-semibold">Symbol</th>
+                <th class="py-1.5 font-semibold text-right">Shares</th>
+                <th class="py-1.5 font-semibold text-right">Avg Cost</th>
+                <th class="py-1.5 font-semibold text-right">Unrealized P&L</th>
+                <th class="py-1.5 font-semibold text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${entries.map(([sym, h]) => {
+                const curP = BUSINESSES[sym]?.price || h.avgPrice;
+                const pnl = (curP - h.avgPrice) * h.shares;
+                return `
+                  <tr onclick="selectSymbol('${sym}')" class="divider-b cursor-pointer hover:opacity-85">
+                    <td class="py-2 font-bold">${sym}</td>
+                    <td class="py-2 text-right">${h.shares.toFixed(2)}</td>
+                    <td class="py-2 text-right">$${h.avgPrice.toFixed(2)}</td>
+                    <td class="py-2 text-right font-semibold" style="color: ${pnl >= 0 ? 'var(--apple-green-text)' : 'var(--apple-red-text)'}">${pnl >= 0 ? '+' : ''}${pnl.toFixed(2)}</td>
+                    <td class="py-2 text-right">
+                      <button onclick="event.stopPropagation(); closePosition('${sym}')" class="apple-pill-btn px-2.5 py-0.5 text-[10px] font-semibold" style="color: var(--apple-red-text)">Close</button>
+                    </td>
+                  </tr>
+                `;
+              }).join("")}
+            </tbody>
+          </table>
+        `;
+      } else if (state.bottomTab === "orders") {
+        if (u.limitOrders.length === 0) {
+          box.innerHTML = `<div class="py-8 text-center text-xs" style="color: var(--text-tertiary)">No open limit orders.</div>`;
+          return;
+        }
+        box.innerHTML = `
+          <table class="w-full text-left border-collapse sf-mono">
+            <thead>
+              <tr class="text-[10px] uppercase divider-b" style="color: var(--text-tertiary)">
+                <th class="py-1.5 font-semibold">Side</th>
+                <th class="py-1.5 font-semibold">Symbol</th>
+                <th class="py-1.5 font-semibold text-right">Shares</th>
+                <th class="py-1.5 font-semibold text-right">Target</th>
+                <th class="py-1.5 font-semibold text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${u.limitOrders.map((o, idx) => `
+                <tr class="divider-b">
+                  <td class="py-2 font-semibold" style="color: ${o.side === 'BUY' ? 'var(--apple-green-text)' : 'var(--apple-red-text)'}">${o.side}</td>
+                  <td class="py-2 font-bold">${o.symbol}</td>
+                  <td class="py-2 text-right">${o.shares.toFixed(2)}</td>
+                  <td class="py-2 text-right">$${o.targetPrice.toFixed(2)}</td>
+                  <td class="py-2 text-right"><button onclick="cancelLimitOrder(${idx})" class="apple-pill-btn px-2.5 py-0.5 text-[10px] font-semibold" style="color: var(--apple-red-text)">Cancel</button></td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        `;
+      } else {
+        if (u.history.length === 0) {
+          box.innerHTML = `<div class="py-8 text-center text-xs" style="color: var(--text-tertiary)">No trade history recorded yet.</div>`;
+          return;
+        }
+        box.innerHTML = `
+          <table class="w-full text-left border-collapse sf-mono">
+            <thead>
+              <tr class="text-[10px] uppercase divider-b" style="color: var(--text-tertiary)">
+                <th class="py-1.5 font-semibold">Time</th>
+                <th class="py-1.5 font-semibold">Side</th>
+                <th class="py-1.5 font-semibold">Symbol</th>
+                <th class="py-1.5 font-semibold text-right">Price</th>
+                <th class="py-1.5 font-semibold text-right">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${u.history.map(tx => `
+                <tr class="divider-b">
+                  <td class="py-2 text-[11px]" style="color: var(--text-tertiary)">${tx.time}</td>
+                  <td class="py-2 font-semibold" style="color: ${tx.side === 'BUY' ? 'var(--apple-green-text)' : 'var(--apple-red-text)'}">${tx.side}</td>
+                  <td class="py-2 font-bold">${tx.symbol} (${tx.shares.toFixed(2)})</td>
+                  <td class="py-2 text-right">$${tx.price.toFixed(2)}</td>
+                  <td class="py-2 text-right font-semibold">${tx.total.toFixed(2)} CR</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        `;
+      }
+    }
+
+    function cancelLimitOrder(idx) {
+      currentUser().limitOrders.splice(idx, 1);
+      saveState();
+      renderBottomTab();
+    }
+
+    function updateLiveValues() {
+      const u = currentUser();
+      document.getElementById("headerCreditsDisplay").textContent = `${u.credits.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} CR`;
+      document.getElementById("headerUserLabel").textContent = u.name;
+      document.getElementById("settingsUserName").textContent = u.name;
+      document.getElementById("settingsProviderBadge").textContent = u.provider;
+
+      let holdingsVal = 0;
+      let unrealizedPnl = 0;
+      Object.entries(u.holdings).forEach(([sym, h]) => {
+        const curP = BUSINESSES[sym]?.price || h.avgPrice;
+        holdingsVal += h.shares * curP;
+        unrealizedPnl += (curP - h.avgPrice) * h.shares;
+      });
+      const totalEquity = u.credits + holdingsVal;
+      document.getElementById("headerEquityDisplay").textContent = totalEquity.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+      const pnlEl = document.getElementById("totalPnlBadge");
+      pnlEl.textContent = `${unrealizedPnl >= 0 ? '+' : ''}${unrealizedPnl.toFixed(2)} CR`;
+      pnlEl.style.color = unrealizedPnl >= 0 ? "var(--apple-green-text)" : "var(--apple-red-text)";
+
+      updateStockHeader();
+      updateOrderEstimate();
+      if (state.bottomTab === "positions") {
+        renderBottomTab();
+      }
+    }
+
+    /* ==========================================================================
+       11. NEWS WIRE RENDERER & UP TO 4 DRAGGABLE/ZOOMABLE macOS WINDOWS
+       ========================================================================== */
+    const openNewsWindows = [];
+    let topWindowZ = 2000;
+
+    function setNewsScope(scope) {
+      state.newsScope = scope;
+      document.getElementById("newsScopeTickerBtn").classList.toggle("active", scope === "TICKER");
+      document.getElementById("newsScopeAllBtn").classList.toggle("active", scope === "ALL");
+      saveState();
+      renderNewsWire();
+    }
+
+    function toggleSeverityFilter(sev) {
+      state.severityFilters[sev] = !state.severityFilters[sev];
+      saveState();
+      renderNewsWire();
+    }
+
+    function renderNewsWire() {
+      const activeBiz = BUSINESSES[state.activeSymbol];
+      const totalBizCount = Object.keys(BUSINESSES).length;
+      document.getElementById("newsHeaderTitle").textContent =
+        state.newsScope === "TICKER" ? `${activeBiz.symbol} Live Wire` : `All ${totalBizCount} Businesses Wire`;
+
+      let pool = [];
+      if (state.newsScope === "TICKER") {
+        pool = activeBiz.news.map(n => ({ ...n, symbol: activeBiz.symbol }));
+      } else {
+        Object.values(BUSINESSES).forEach(b => {
+          b.news.forEach(n => pool.push({ ...n, symbol: b.symbol }));
+        });
+        pool.sort((a, b) => {
+          if (a.isRealLive !== b.isRealLive) return a.isRealLive ? -1 : 1;
+          return b.date.localeCompare(a.date);
+        });
+      }
+
+      const filtered = pool.filter(n => state.severityFilters[n.severity]);
+      const container = document.getElementById("newsListContainer");
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="p-8 text-center text-xs" style="color: var(--text-tertiary)">No articles match the selected severity filters.</div>`;
+        return;
+      }
+
+      container.innerHTML = filtered.slice(0, 70).map(item => {
+        const rowClass = item.severity === "red" ? "news-sev-red" : (item.severity === "yellow" ? "news-sev-yellow" : "news-sev-blue");
+        const dotColor = item.severity === "red" ? "var(--apple-red)" : (item.severity === "yellow" ? "var(--apple-orange)" : "var(--apple-blue)");
+        const outletBadgeStyle = item.outlet === "CNN"
+          ? "background-color: var(--apple-red); color: #FFFFFF;"
+          : (item.outlet === "BLOOMBERG"
+              ? "background-color: var(--apple-blue-bg); color: var(--apple-blue);"
+              : "background-color: var(--bg-fill); color: var(--text-secondary);");
+
+        return `
+          <article onclick="openNewsPopup('${item.symbol}', '${item.id}')" class="news-row ${rowClass} px-4 py-3 cursor-pointer flex flex-col gap-1.5">
+            <div class="flex items-center justify-between gap-2 min-w-0">
+              <div class="flex items-center gap-1.5 min-w-0">
+                <span class="w-1.5 h-1.5 rounded-full shrink-0" style="background-color: ${dotColor}"></span>
+                <span class="sf-mono text-[10px] font-bold px-1.5 py-0.5 rounded-md shrink-0" style="background-color: var(--bg-fill);">${item.symbol}</span>
+                ${item.isRealLive ? `<span class="px-1.5 py-0.5 rounded-full text-[9px] font-bold tracking-wider uppercase shrink-0" style="background-color: var(--apple-green-bg); color: var(--apple-green-text);">LIVE</span>` : ""}
+                <span class="sf-mono text-[10px] truncate" style="color: var(--text-tertiary)">${item.date}</span>
+              </div>
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide shrink-0" style="${outletBadgeStyle}">${item.outlet}</span>
+            </div>
+            <h3 class="text-[13px] font-semibold leading-snug">${item.headline}</h3>
+            <div class="flex items-center justify-between text-[11px] gap-2" style="color: var(--text-secondary)">
+              <span class="truncate">${item.contributor}</span>
+              <span class="font-semibold shrink-0" style="color: var(--apple-blue)">Open ↗</span>
+            </div>
+          </article>
+        `;
+      }).join("");
+    }
+
+    function buildEditorialSvgBanner(item) {
+      const palettes = {
+        executive: ["#8E1919", "#FF3B30", "#FFD6D3"],
+        chip: ["#0B5D3B", "#34C759", "#D1F7DC"],
+        chart: ["#0040DD", "#007AFF", "#D6E8FF"],
+        network: ["#3634A3", "#5856D6", "#E2E1FF"],
+        media: ["#6B1E9C", "#AF52DE", "#F4E1FF"]
+      };
+      const [c1, c2, c3] = palettes[item.photoTheme] || palettes.chart;
+      const safeId = item.id.replace(/[^a-zA-Z0-9_]/g, "_");
+      return `
+        <svg viewBox="0 0 400 108" class="w-full h-28 rounded-xl overflow-hidden block shrink-0">
+          <defs>
+            <linearGradient id="bg_${safeId}" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="${c1}" />
+              <stop offset="100%" stop-color="${c2}" />
+            </linearGradient>
+          </defs>
+          <rect width="400" height="108" fill="url(#bg_${safeId})" />
+          <circle cx="340" cy="24" r="56" fill="${c3}" fill-opacity="0.18" />
+          <path d="M0 88 Q 110 54, 200 72 T 400 30 L 400 108 L 0 108 Z" fill="#000000" fill-opacity="0.25" />
+          <text x="16" y="28" fill="#FFFFFF" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-weight="700" font-size="12">${item.outlet} • ${item.symbol} LIVE DISPATCH</text>
+          <text x="16" y="46" fill="${c3}" font-family="SF Mono, JetBrains Mono, monospace" font-weight="600" font-size="10">${item.date}</text>
+          <rect x="16" y="74" width="112" height="20" rx="6" fill="rgba(0,0,0,0.45)" />
+          <text x="26" y="87" fill="#FFFFFF" font-family="SF Mono, JetBrains Mono, monospace" font-weight="600" font-size="9">${item.isRealLive ? 'REAL-TIME WIRE' : 'VERIFIED BRIEF'}</text>
+        </svg>
+      `;
+    }
+
+    function buildWindowInnerBodyHtml(symbol, story) {
+      const fallbackSvg = buildEditorialSvgBanner({ ...story, symbol });
+      const mediaHtml = story.imageUrl
+        ? `<div class="relative w-full h-32 rounded-xl overflow-hidden shrink-0">
+             <img src="${story.imageUrl}" alt="${story.outlet} media" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML = decodeURIComponent('${encodeURIComponent(fallbackSvg)}')" />
+           </div>`
+        : fallbackSvg;
+
+      return `
+        ${mediaHtml}
+        <h3 class="text-sm font-bold leading-snug">${story.headline}</h3>
+        <div class="text-xs font-semibold" style="color: var(--apple-blue)">${story.contributor}</div>
+        <div class="flex flex-col gap-2 leading-relaxed" style="color: var(--text-secondary)">
+          ${story.summary.map(p => `<p>${p}</p>`).join("")}
+        </div>
+        ${story.followUps && story.followUps.length ? `
+          <div class="pt-2.5 divider-t flex flex-col gap-1.5 mt-1">
+            <span class="text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5" style="color: var(--apple-green-text)">
+              <span class="w-1.5 h-1.5 rounded-full" style="background-color: var(--apple-green)"></span>
+              Live Follow-Up Updates
+            </span>
+            ${story.followUps.map(f => `<div class="text-xs p-2 rounded-lg" style="background-color: var(--bg-fill)"><span class="sf-mono text-[10px]" style="color: var(--text-tertiary)">[${f.date}]</span> ${f.text}</div>`).join("")}
+          </div>
+        ` : ""}
+      `;
+    }
+
+    function refreshOpenWindowBody(winId, symbol, story) {
+      const body = document.getElementById(`${winId}_body`);
+      if (body) body.innerHTML = buildWindowInnerBodyHtml(symbol, story);
+    }
+
+    function openNewsPopup(symbol, newsId) {
+      const existing = openNewsWindows.find(w => w.newsId === newsId);
+      if (existing) {
+        bringWindowToFront(existing.winId);
+        return;
+      }
+
+      if (openNewsWindows.length >= 4) {
+        const oldest = openNewsWindows.shift();
+        const oldEl = document.getElementById(oldest.winId);
+        if (oldEl) oldEl.remove();
+        showAppleBanner("4-Window Limit", "Closed oldest macOS window to open new report.");
+      }
+
+      const biz = BUSINESSES[symbol];
+      const story = biz?.news.find(n => n.id === newsId);
+      if (!story) return;
+
+      const winId = "news_win_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
+      const offset = openNewsWindows.length * 26;
+      const winObj = { winId, newsId, symbol, zoom: 1.0 };
+      openNewsWindows.push(winObj);
+
+      const winEl = document.createElement("div");
+      winEl.id = winId;
+      winEl.className = "macos-popup-win";
+      winEl.style.left = `${Math.max(12, Math.min(window.innerWidth - 450, 110 + offset))}px`;
+      winEl.style.top = `${Math.max(66, Math.min(window.innerHeight - 420, 76 + offset))}px`;
+      winEl.style.zIndex = ++topWindowZ;
+
+      winEl.innerHTML = `
+        <!-- macOS Sequoia Traffic-Light Window Titlebar -->
+        <div class="win-drag-handle px-3.5 py-2.5 divider-b flex items-center justify-between gap-2 cursor-move" style="background-color: var(--bg-card-secondary);">
+          <div class="flex items-center gap-2 min-w-0">
+            <!-- Traffic Lights -->
+            <div class="flex items-center gap-1.5 mr-1 shrink-0">
+              <button onclick="closeNewsWindow('${winId}')" title="Close Window" class="w-3 h-3 rounded-full bg-[#FF5F56] hover:brightness-90 transition-all"></button>
+              <button onclick="setNewsWindowZoom('${winId}', 1.0)" title="Reset 100% Zoom" class="w-3 h-3 rounded-full bg-[#FFBD2E] hover:brightness-90 transition-all"></button>
+              <button onclick="setNewsWindowZoom('${winId}', 1.2)" title="Expand Text 120%" class="w-3 h-3 rounded-full bg-[#27C93F] hover:brightness-90 transition-all"></button>
+            </div>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold text-white shrink-0" style="background-color: var(--apple-red)">${story.outlet}</span>
+            <span class="sf-mono text-xs font-bold shrink-0">${symbol}</span>
+            <span class="sf-mono text-[10px] truncate" style="color: var(--text-tertiary)">${story.date}</span>
+          </div>
+          <div class="flex items-center gap-1 shrink-0">
+            <button onclick="zoomNewsWindow('${winId}', -0.1)" title="Zoom Out" class="apple-pill-btn w-6 h-6 flex items-center justify-center text-xs font-bold">−</button>
+            <span id="${winId}_zoomLbl" class="sf-mono text-[10px] px-1">100%</span>
+            <button onclick="zoomNewsWindow('${winId}', 0.1)" title="Zoom In" class="apple-pill-btn w-6 h-6 flex items-center justify-center text-xs font-bold">+</button>
+          </div>
+        </div>
+
+        <!-- Scrollable Content Body -->
+        <div id="${winId}_body" class="p-4 overflow-y-auto flex-1 flex flex-col gap-2.5" style="font-size: 13px;">
+          ${buildWindowInnerBodyHtml(symbol, story)}
+        </div>
+
+        <!-- Footer with Bottom-Left Original Source Link -->
+        <div class="px-4 py-2.5 divider-t flex items-center justify-between text-xs" style="background-color: var(--bg-card-secondary);">
+          <a href="${story.url}" target="_blank" rel="noopener noreferrer" class="font-semibold hover:underline flex items-center gap-1" style="color: var(--apple-blue)">
+            <span>Original Source (${story.outlet})</span>
+            <span>↗</span>
+          </a>
+          <span class="sf-mono text-[10px]" style="color: var(--text-tertiary)">macOS Window ${openNewsWindows.length}/4</span>
+        </div>
+      `;
+
+      document.getElementById("floatingWindowsLayer").appendChild(winEl);
+      enableWindowDrag(winEl, winId);
+      updateOpenWindowsBadge();
+    }
+
+    function bringWindowToFront(winId) {
+      const el = document.getElementById(winId);
+      if (el) el.style.zIndex = ++topWindowZ;
+    }
+
+    function closeNewsWindow(winId) {
+      const idx = openNewsWindows.findIndex(w => w.winId === winId);
+      if (idx >= 0) openNewsWindows.splice(idx, 1);
+      const el = document.getElementById(winId);
+      if (el) el.remove();
+      updateOpenWindowsBadge();
+    }
+
+    function setNewsWindowZoom(winId, targetZoom) {
+      const w = openNewsWindows.find(item => item.winId === winId);
+      if (!w) return;
+      w.zoom = targetZoom;
+      const body = document.getElementById(`${winId}_body`);
+      const lbl = document.getElementById(`${winId}_zoomLbl`);
+      if (body) body.style.fontSize = `${Math.round(13 * w.zoom)}px`;
+      if (lbl) lbl.textContent = `${Math.round(w.zoom * 100)}%`;
+    }
+
+    function zoomNewsWindow(winId, delta) {
+      const w = openNewsWindows.find(item => item.winId === winId);
+      if (!w) return;
+      const next = Math.min(1.5, Math.max(0.8, +(w.zoom + delta).toFixed(1)));
+      setNewsWindowZoom(winId, next);
+    }
+
+    function updateOpenWindowsBadge() {
+      document.getElementById("openWindowsCountBadge").textContent = `Windows: ${openNewsWindows.length}/4`;
+    }
+
+    function enableWindowDrag(winEl, winId) {
+      const handle = winEl.querySelector(".win-drag-handle");
+      let dragging = false;
+      let startX = 0, startY = 0, origLeft = 0, origTop = 0;
+
+      winEl.addEventListener("mousedown", () => bringWindowToFront(winId));
+
+      handle.addEventListener("mousedown", (e) => {
+        if (e.target.tagName === "BUTTON") return;
+        dragging = true;
+        startX = e.clientX;
+        startY = e.clientY;
+        origLeft = winEl.offsetLeft;
+        origTop = winEl.offsetTop;
+        bringWindowToFront(winId);
+      });
+
+      window.addEventListener("mousemove", (e) => {
+        if (!dragging) return;
+        const nextLeft = Math.max(8, Math.min(window.innerWidth - winEl.offsetWidth - 8, origLeft + (e.clientX - startX)));
+        const nextTop = Math.max(60, Math.min(window.innerHeight - 60, origTop + (e.clientY - startY)));
+        winEl.style.left = `${nextLeft}px`;
+        winEl.style.top = `${nextTop}px`;
+      });
+
+      window.addEventListener("mouseup", () => { dragging = false; });
+    }
+
+    /* ==========================================================================
+       12. REAL-TIME BACKGROUND SYNC & REPLAY ENGINE
+       ========================================================================== */
+    function checkAndTriggerLimitOrders() {
+      const u = currentUser();
+      if (!u.limitOrders.length) return;
+      for (let i = u.limitOrders.length - 1; i >= 0; i--) {
+        const ord = u.limitOrders[i];
+        const curPx = BUSINESSES[ord.symbol]?.price;
+        if (!curPx) continue;
+        const triggered = (ord.side === "BUY" && curPx <= ord.targetPrice) ||
+                          (ord.side === "SELL" && curPx >= ord.targetPrice);
+        if (triggered) {
+          u.limitOrders.splice(i, 1);
+          fillInstantOrder(u, ord.symbol, ord.side, ord.shares, curPx);
+        }
+      }
+    }
+
+    // 1) Real Market Poll every 12 seconds (active ticker + favorite watchlist quotes)
+    setInterval(async () => {
+      const activeSym = state.activeSymbol;
+      const gotReal = await RealMarketEngine.fetchSymbolChartAndQuote(activeSym, state.timeframe, true);
+      if (state.finnhubApiKey) {
+        await RealMarketEngine.fetchFinnhubQuote(activeSym);
+      }
+
+      // If offline/CORS blocked, perform gentle realistic micro-tick so terminal stays responsive
+      if (!gotReal && !BUSINESSES[activeSym].isRealQuote) {
+        const b = BUSINESSES[activeSym];
+        const delta = (Math.random() - 0.492) * (b.price * 0.0012);
+        b.price = Math.max(0.1, +(b.price + delta).toFixed(b.price < 10 ? 3 : 2));
+        const series = getCandlesForSymbolAndTf(activeSym, state.timeframe);
+        if (series.length > 0) {
+          const last = series[series.length - 1];
+          last.c = b.price;
+          last.h = Math.max(last.h, b.price);
+          last.l = Math.min(last.l, b.price);
+        }
+        triggerPriceFlash(delta);
+        updateLiveValues();
+        renderActiveChart();
+      }
+
+      // Background refresh one favorite symbol per cycle so watchlist % badges stay fresh
+      const favs = currentUser().favorites.filter(s => s !== activeSym);
+      if (favs.length > 0) {
+        const pick = favs[Math.floor(Date.now() / 12000) % favs.length];
+        RealMarketEngine.fetchSymbolChartAndQuote(pick, "1D", true).then(() => renderTickerStrip());
+      }
+
+      checkAndTriggerLimitOrders();
+    }, 12000);
+
+    // 2) Real Breaking News Poll every 25 seconds for active symbol
+    setInterval(() => {
+      RealNewsEngine.syncSymbolNews(state.activeSymbol, false);
+    }, 25000);
+
+    // 3) Bar-by-Bar Replay Playback Timer
+    setInterval(() => {
+      if (xproState.isPlaying && xproState.replayIndex !== null) {
+        stepReplay(1);
+      }
+    }, 650);
+
+    /* ==========================================================================
+       13. MASTER REFRESH & INITIALIZATION
+       ========================================================================== */
+    function refreshAllUI() {
+      applyAppearance();
+      applyChartModeUI();
+
+      document.getElementById("filterFavBtn").classList.toggle("active", state.marketFilter === "FAV");
+      document.getElementById("filterAllBtn").classList.toggle("active", state.marketFilter === "ALL");
+      populateSectorDropdown();
+
+      document.querySelectorAll(".tf-btn").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.tf === state.timeframe);
+      });
+
+      document.getElementById("newsScopeTickerBtn").classList.toggle("active", state.newsScope === "TICKER");
+      document.getElementById("newsScopeAllBtn").classList.toggle("active", state.newsScope === "ALL");
+
+      document.getElementById("chkSevRed").checked = state.severityFilters.red;
+      document.getElementById("chkSevYellow").checked = state.severityFilters.yellow;
+      document.getElementById("chkSevBlue").checked = state.severityFilters.blue;
+
+      setOrderSide(state.orderSide);
+      setOrderType(state.orderType);
+      setOrderUnit(state.orderUnit);
+      setBottomTab(state.bottomTab);
+
+      renderTickerStrip();
+      updateLiveValues();
+      renderNewsWire();
+      renderActiveChart();
+    }
+
+    window.addEventListener("resize", () => renderActiveChart());
+
+    window.addEventListener("load", () => {
+      loadState();
+      refreshAllUI();
+
+      // Immediately launch real-time Yahoo Finance / Finnhub + GDELT / Google News RSS sync
+      RealMarketEngine.fetchSymbolChartAndQuote(state.activeSymbol, state.timeframe, true);
+      if (state.finnhubApiKey) {
+        RealMarketEngine.connectFinnhubSocket(state.activeSymbol);
+        RealMarketEngine.fetchFinnhubQuote(state.activeSymbol);
+      }
+      RealNewsEngine.syncSymbolNews(state.activeSymbol, false);
+
+      // Also sync initial 6 favorites quotes in background
+      INITIAL_FAVORITES.filter(s => s !== state.activeSymbol).forEach((sym, i) => {
+        setTimeout(() => {
+          RealMarketEngine.fetchSymbolChartAndQuote(sym, "1D", true).then(() => renderTickerStrip());
+        }, (i + 1) * 650);
+      });
+    });
+  </script>
+</body>
+</html>
